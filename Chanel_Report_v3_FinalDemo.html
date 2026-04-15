@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Test Version | 数据更新日期 25/8/11</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sidebar-bg: #000000;
+            --main-bg: #f3f4f6;
+            --card-bg: #ffffff;
+            --accent-orange: #ff6b35;
+            --text-main: #333333;
+            --text-muted: #666666;
+            --border-color: #e5e7eb;
+            --sidebar-width: 200px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', -apple-system, sans-serif;
+            background: var(--main-bg);
+            color: var(--text-main);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* Top Utility Bar */
+        .top-utility {
+            height: 48px;
+            background: #2e3436;
+            color: #d3d7cf;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            font-size: 13px;
+        }
+
+        .top-utility-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .top-utility-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .utility-icon {
+            cursor: pointer;
+            opacity: 0.8;
+        }
+
+        .utility-icon:hover {
+            opacity: 1;
+        }
+
+        /* Main Container */
+        .container {
+            display: flex;
+            height: calc(100vh - 48px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--sidebar-bg);
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            padding-top: 20px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 20px;
+            margin-bottom: 30px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: bold;
+            font-size: 10px;
+        }
+
+        .logo-text {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .nav-group {
+            margin-bottom: 20px;
+        }
+
+        .nav-group-title {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            padding: 0 20px;
+            margin-bottom: 10px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-group-title::before {
+            content: '';
+            width: 3px;
+            height: 12px;
+            background: var(--accent-orange);
+            display: block;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 20px;
+            font-size: 12px;
+            color: #ccc;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            font-size: 14px;
+            color: #ccc;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 4px solid transparent;
+            margin-bottom: 5px;
+        }
+
+        .nav-item:hover {
+            color: #fff;
+        }
+
+        .nav-item.active {
+            color: #fff;
+            font-weight: 700;
+            border-left-color: #ff6b35;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            padding: 20px;
+            font-size: 11px;
+            color: #666;
+            border-top: 1px solid #222;
+        }
+
+        /* Content Area */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* Top Filter Area */
+        .filter-area {
+            background: #ffffff;
+            padding: 10px 20px;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .filter-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .period-toggle {
+            display: flex;
+            background: #e5e7eb;
+            border-radius: 4px;
+            padding: 2px;
+            margin-right: 15px;
+        }
+
+        .period-btn {
+            border: none;
+            background: transparent;
+            padding: 4px 12px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 2px;
+            color: #666;
+        }
+
+        .period-btn.active {
+            background: #000;
+            color: #fff;
+        }
+
+        .filter-select-group {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .filter-label {
+            font-size: 10px;
+            color: #888;
+            font-weight: 700;
+        }
+
+        .filter-select {
+            border: 1px solid #ddd;
+            padding: 4px 8px;
+            font-size: 11px;
+            border-radius: 4px;
+            min-width: 120px;
+            background: #fff;
+            height: 28px;
+        }
+
+        /* Demo Alert Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-card {
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            border-top: 5px solid var(--accent-orange);
+        }
+
+        .modal-text {
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .modal-btn {
+            background: #000;
+            color: #fff;
+            border: none;
+            padding: 8px 25px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* Page Content */
+        .page-body {
+            padding: 20px;
+        }
+
+        .watermark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="150" viewBox="0 0 200 150"><text x="10" y="50" font-family="Arial" font-size="12" fill="rgba(0,0,0,0.03)" transform="rotate(-30 50 100)">panda_qu_ext 2025-08-11</text></svg>');
+            z-index: 1;
+        }
+
+        /* Cards and Widgets */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            padding: 15px;
+            border: 1px solid #eee;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title::before {
+            content: '';
+            width: 3px;
+            height: 14px;
+            background: var(--accent-orange);
+            display: block;
+        }
+
+        /* Sales Overview Widget */
+        .sales-overview {
+            display: flex;
+            gap: 30px;
+        }
+
+        .main-kpi {
+            flex: 1;
+            text-align: center;
+            border-right: 1px solid #eee;
+            padding-right: 20px;
+        }
+
+        .kpi-title {
+            font-size: 11px;
+            color: #888;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .kpi-val {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .kpi-trend {
+            font-size: 10px;
+            color: #888;
+        }
+
+        .sub-kpi-grid {
+            flex: 2;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .sub-kpi {
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .sub-kpi.highlight {
+            border: 2px solid #ff4d4d;
+        }
+
+        .chart-container {
+            height: 200px;
+            position: relative;
+        }
+
+        /* Tables */
+        .table-widget {
+            overflow: hidden;
+        }
+
+        .table-title {
+            background: #e5e7eb;
+            font-size: 12px;
+            padding: 5px 10px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .styled-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+
+        .styled-table th {
+            background: #f3f4f6;
+            padding: 8px;
+            text-align: left;
+            border-bottom: 2px solid #ddd;
+            font-weight: 700;
+        }
+
+        .styled-table td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .styled-table tr:hover {
+            background: #f9fafb;
+        }
+
+        .num-col {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .trend-up { color: #10b981; }
+        .trend-down { color: #ef4444; }
+
+        .btn-black-gold {
+            background: #2e3436;
+            color: #fff;
+            border: none;
+            padding: 4px 10px;
+            font-size: 10px;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+
+        #summary, #btq-rank, #performance, #best-seller, #fja {
+            display: none;
+        }
+
+        #summary.active, #btq-rank.active, #performance.active, #best-seller.active, #fja.active {
+            display: block;
+        }
+
+        /* Performance Page Specific Styles */
+        .perf-filter-expanded {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 12px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #eee;
+        }
+
+        .perf-kpi-section {
+            margin-bottom: 25px;
+        }
+
+        .perf-section-header {
+            font-size: 11px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #444;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 5px;
+        }
+
+        .perf-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+        }
+
+        .perf-kpi-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            padding: 12px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .perf-kpi-card .label {
+            font-size: 10px;
+            color: #888;
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .perf-kpi-card .value {
+            font-size: 16px;
+            font-weight: 700;
+            color: #000;
+            display: block;
+        }
+
+        .perf-kpi-card .sub-label {
+            font-size: 9px;
+            color: #999;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .perf-kpi-card .growth {
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        .perf-chart-row {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .bubble-chart-container {
+            height: 300px;
+        }
+
+        /* Summary Overhaul Styles */
+        .summary-dashboard {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .summary-kpi-block {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .summary-kpi-card {
+            background: #fff;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #eee;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .summary-kpi-card .main-val {
+            font-size: 20px;
+            font-weight: 700;
+            margin-top: 5px;
+        }
+
+        .summary-kpi-card .meta {
+            font-size: 10px;
+            color: #888;
+            margin-top: 5px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+        }
+
+        .summary-table-container {
+            overflow-x: auto;
+            background: #fff;
+            border-radius: 4px;
+            border: 1px solid #eee;
+        }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+        }
+
+        .summary-table th {
+            background: #f3f4f6;
+            padding: 6px 4px;
+            border: 1px solid #ddd;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .summary-table td {
+            padding: 6px 4px;
+            border: 1px solid #eee;
+            text-align: right;
+        }
+
+        .summary-table .group-header {
+            background: #eee;
+            font-weight: 700;
+            text-align: left;
+        }
+
+        .summary-table .col-label {
+            text-align: left;
+            font-weight: 600;
+            background: #fafafa;
+        }
+
+        /* Core KPI Table Sub-headers */
+        .table-sub-header {
+            background: #f9fafb !important;
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-utility">
+        <div class="top-utility-left">
+            <span>Dashboard - Test Version</span>
+            <span style="opacity: 0.5">|</span>
+            <span>数据更新日期 25/8/11</span>
+            <span class="utility-icon">▼</span>
+        </div>
+        <div class="top-utility-right">
+            <span class="utility-icon">↻</span>
+            <span class="utility-icon">★</span>
+            <span class="utility-icon">◗</span>
+            <span class="utility-icon">📤</span>
+            <span class="utility-icon">⋯</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon">SMART</div>
+                <span class="logo-text">SMART</span>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-item active" onclick="showPage('summary')">Summary</div>
+                <div class="nav-item" onclick="showPage('btq-rank')">BTQ Rank</div>
+                <div class="nav-item" onclick="showPage('performance')">Performance</div>
+                <div class="nav-item" onclick="showDemoPopup()">Best Seller</div>
+                <div class="nav-item" onclick="showDemoPopup()">FJA Performance</div>
+            </div>
+
+            <div class="sidebar-bottom">
+                <div style="color: var(--accent-orange); margin-bottom: 5px; cursor: pointer;">Go To Metrics Definition</div>
+                <div style="color: var(--accent-orange); margin-bottom: 10px; cursor: pointer;">Go To CRM Report</div>
+                <div>Refresh Date: 2025/08/11</div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+                  <div class="filter-area">
+                <div class="filter-row">
+                    <div class="filter-select-group">
+                        <span class="filter-label">Time Period:</span>
+                        <div class="period-toggle">
+                            <button class="period-btn active">YTD</button>
+                            <button class="period-btn">Month</button>
+                            <button class="period-btn">Self-Define</button>
+                        </div>
+                    </div>
+                    <div style="flex:1"></div>
+                    <div class="filter-select-group">
+                        <span class="filter-label">Store Type</span>
+                        <select class="filter-select"><option>所有</option></select>
+                    </div>
+                    <div class="filter-select-group">
+                        <span class="filter-label">BTQ</span>
+                        <select class="filter-select"><option>所有</option></select>
+                    </div>
+                    <div class="filter-select-group">
+                        <span class="filter-label">City</span>
+                        <select class="filter-select"><option>所有</option></select>
+                    </div>
+                    <div class="filter-select-group">
+                        <span class="filter-label">Order Type</span>
+                        <select class="filter-select"><option>所有</option></select>
+                    </div>
+                    <div class="filter-select-group">
+                        <span class="filter-label">Sales Unit (with Tax)</span>
+                        <select class="filter-select"><option>K RMB</option></select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-overlay" id="demoModal">
+                <div class="modal-card">
+                    <div class="modal-text">
+                        这个页面不在本次demo的展示范围内，<br>
+                        如需了解更多，可联系作者本人
+                    </div>
+                    <button class="modal-btn" onclick="hideDemoPopup()">知道了</button>
+                </div>
+            </div>
+
+            <div class="page-body">
+                <div id="summary" class="active">
+                    <div class="summary-dashboard">
+                        <div class="card">
+                            <div class="card-title">Sales Trend</div>
+                            <div class="chart-container" style="height: 220px;">
+                                <canvas id="summaryTrendChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="summary-kpi-block">
+                            <div class="summary-kpi-card">
+                                <div class="kpi-title">Core</div>
+                                <div class="main-val">603,394.0</div>
+                                <div class="meta">
+                                    <span>Last Year</span><span>659,651.6</span>
+                                    <span>Growth</span><span class="trend-down">-8.5%</span>
+                                    <span>Share</span><span>86.9%</span>
+                                </div>
+                            </div>
+                            <div class="summary-kpi-card">
+                                <div class="kpi-title">HEB</div>
+                                <div class="main-val">91,210.9</div>
+                                <div class="meta">
+                                    <span>Last Year</span><span>70,919.8</span>
+                                    <span>Growth</span><span class="trend-up">+28.6%</span>
+                                    <span>Share</span><span>13.1%</span>
+                                </div>
+                            </div>
+                            <div class="card" style="grid-column: span 2; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700;">
+                                Total Sales: 694,604.9 <span class="trend-down" style="margin-left: 10px;">-4.9%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="summary-table-container">
+                        <table class="summary-table">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2">Category</th>
+                                    <th rowspan="2">BTQ Type</th>
+                                    <th colspan="4">D - 1</th>
+                                    <th colspan="5">MTD</th>
+                                    <th colspan="5">YTD</th>
+                                </tr>
+                                <tr>
+                                    <th>CY</th><th>LY</th><th>Growth</th><th>Share</th>
+                                    <th>CY</th><th>LY</th><th>Growth</th><th>Achieve</th><th>Share</th>
+                                    <th>CY</th><th>LY</th><th>Growth</th><th>Run Rate</th><th>Share</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="group-header"><td colspan="16">Total</td></tr>
+                                <tr>
+                                    <td rowspan="3" class="col-label">Total</td>
+                                    <td style="text-align: left;">Region A</td>
+                                    <td>3,439.56</td><td>1,446.3</td><td class="trend-up">+137.8%</td><td>100.0%</td>
+                                    <td>6,821.1</td><td>5,078.5</td><td class="trend-up">+34.3%</td><td>-</td><td>100.0%</td>
+                                    <td>694,604.9</td><td>730,571.4</td><td class="trend-down">-4.9%</td><td>71.6%</td><td>100.0%</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: left;">Branch X</td>
+                                    <td>295.6</td><td>634.3</td><td class="trend-down">-53.4%</td><td>8.6%</td>
+                                    <td>1,462.7</td><td>1,610.0</td><td class="trend-down">-9.1%</td><td>-</td><td>21.4%</td>
+                                    <td>246,254.9</td><td>281,619.7</td><td class="trend-down">-12.6%</td><td>69.1%</td><td>35.5%</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: left;">Center Y</td>
+                                    <td>3,143.96</td><td>812.0</td><td class="trend-up">+287.2%</td><td>91.4%</td>
+                                    <td>5,358.4</td><td>3,468.5</td><td class="trend-up">+54.5%</td><td>-</td><td>78.6%</td>
+                                    <td>448,350.0</td><td>448,951.7</td><td class="trend-down">-0.1%</td><td>73.1%</td><td>64.5%</td>
+                                </tr>
+                                <tr class="group-header"><td colspan="16">Core</td></tr>
+                                <tr>
+                                    <td rowspan="3" class="col-label">Core</td>
+                                    <td style="text-align: left;">Region A</td>
+                                    <td>1,340.76</td><td>1,446.3</td><td class="trend-down">-7.3%</td><td>39.0%</td>
+                                    <td>4,722.3</td><td>5,078.5</td><td class="trend-down">-7.0%</td><td>7.6%</td><td>69.2%</td>
+                                    <td>603,394.0</td><td>659,651.6</td><td class="trend-down">-8.5%</td><td>75.1%</td><td>86.9%</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: left;">Branch X</td>
+                                    <td>295.6</td><td>634.3</td><td class="trend-down">-53.4%</td><td>8.6%</td>
+                                    <td>1,462.7</td><td>1,610.0</td><td class="trend-down">-9.1%</td><td>6.3%</td><td>21.4%</td>
+                                    <td>219,630.3</td><td>249,468.3</td><td class="trend-down">-12.0%</td><td>72.6%</td><td>31.6%</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: left;">Center Y</td>
+                                    <td>1,045.16</td><td>812.0</td><td class="trend-up">28.7%</td><td>30.4%</td>
+                                    <td>3,259.6</td><td>3,468.5</td><td class="trend-down">-6.0%</td><td>8.3%</td><td>47.8%</td>
+                                    <td>383,763.7</td><td>410,183.3</td><td class="trend-down">-6.4%</td><td>76.6%</td><td>55.2%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- BTQ Rank Page -->
+                <div id="btq-rank">
+                    <div class="card">
+                        <div class="card-title">Anonymized BTQ Performance Ranking</div>
+                        <p style="font-size: 11px; color: #888; margin-bottom: 15px;">Refresh Date: 2025/09/04</p>
+                        <div style="max-height: 60vh; overflow-y: auto;">
+                            <table class="styled-table">
+                                <thead>
+                                    <tr>
+                                        <th>Store Code</th>
+                                        <th>Store Name</th>
+                                        <th>Segment</th>
+                                        <th class="num-col">Total Stock</th>
+                                        <th class="num-col">CY Sales</th>
+                                        <th class="num-col">Growth %</th>
+                                        <th class="num-col">Stock Turn</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>ST-001</td><td>Location Alpha</td><td>Region North</td><td class="num-col">12,456</td><td class="num-col">5,234</td><td class="num-col trend-up">+5.2%</td><td class="num-col">2.4</td></tr>
+                                    <tr><td>ST-002</td><td>Location Beta</td><td>Region East</td><td class="num-col">10,234</td><td class="num-col">4,856</td><td class="num-col trend-down">-2.1%</td><td class="num-col">2.1</td></tr>
+                                    <tr><td>ST-003</td><td>Location Gamma</td><td>Region South</td><td class="num-col">9,856</td><td class="num-col">3,945</td><td class="num-col trend-up">+8.5%</td><td class="num-col">2.5</td></tr>
+                                    <tr><td>ST-004</td><td>Location Delta</td><td>Region North</td><td class="num-col">8,456</td><td class="num-col">4,234</td><td class="num-col trend-up">+1.2%</td><td class="num-col">2.2</td></tr>
+                                    <tr><td>ST-005</td><td>Location Epsilon</td><td>Region West</td><td class="num-col">7,234</td><td class="num-col">3,856</td><td class="num-col trend-down">-0.5%</td><td class="num-col">1.9</td></tr>
+                                    <tr><td>ST-006</td><td>Location Zeta</td><td>Region South</td><td class="num-col">6,856</td><td class="num-col">3,645</td><td class="num-col trend-up">+4.3%</td><td class="num-col">2.3</td></tr>
+                                    <tr><td>ST-007</td><td>Location Eta</td><td>Region East</td><td class="num-col">11,456</td><td class="num-col">5,734</td><td class="num-col trend-up">+10.2%</td><td class="num-col">2.8</td></tr>
+                                    <tr><td>ST-008</td><td>Location Theta</td><td>Region North</td><td class="num-col">9,234</td><td class="num-col">4,456</td><td class="num-col trend-down">-3.1%</td><td class="num-col">2.0</td></tr>
+                                    <tr><td>ST-009</td><td>Location Iota</td><td>Region West</td><td class="num-col">8,856</td><td class="num-col">4,145</td><td class="num-col trend-up">+2.5%</td><td class="num-col">2.4</td></tr>
+                                    <tr><td>ST-010</td><td>Location Kappa</td><td>Region East</td><td class="num-col">7,456</td><td class="num-col">3,534</td><td class="num-col trend-down">-1.4%</td><td class="num-col">1.8</td></tr>
+                                    <tr><td>ST-011</td><td>Location Lambda</td><td>Region North</td><td class="num-col">6,234</td><td class="num-col">3,156</td><td class="num-col trend-up">+0.5%</td><td class="num-col">2.1</td></tr>
+                                    <tr><td>ST-012</td><td>Location Mu</td><td>Region South</td><td class="num-col">5,856</td><td class="num-col">2,945</td><td class="num-col trend-up">+6.5%</td><td class="num-col">2.2</td></tr>
+                                    <tr><td>ST-013</td><td>Location Nu</td><td>Region North</td><td class="num-col">10,456</td><td class="num-col">4,934</td><td class="num-col trend-up">+3.2%</td><td class="num-col">2.4</td></tr>
+                                    <tr><td>ST-014</td><td>Location Xi</td><td>Region West</td><td class="num-col">9,234</td><td class="num-col">4,356</td><td class="num-col trend-down">-5.1%</td><td class="num-col">1.9</td></tr>
+                                    <tr><td>ST-015</td><td>Location Omicron</td><td>Region South</td><td class="num-col">8,856</td><td class="num-col">3,945</td><td class="num-col trend-up">+7.5%</td><td class="num-col">2.5</td></tr>
+                                    <tr><td>ST-016</td><td>Location Pi</td><td>Region East</td><td class="num-col">7,456</td><td class="num-col">3,734</td><td class="num-col trend-up">+1.2%</td><td class="num-col">2.3</td></tr>
+                                    <tr><td>ST-017</td><td>Location Rho</td><td>Region West</td><td class="num-col">6,234</td><td class="num-col">2,856</td><td class="num-col trend-down">-2.5%</td><td class="num-col">1.8</td></tr>
+                                    <tr><td>ST-018</td><td>Location Sigma</td><td>Region South</td><td class="num-col">5,856</td><td class="num-col">2,745</td><td class="num-col trend-up">+4.3%</td><td class="num-col">2.1</td></tr>
+                                    <tr><td>ST-019</td><td>Location Tau</td><td>Region East</td><td class="num-col">11,456</td><td class="num-col">5,234</td><td class="num-col trend-up">+6.2%</td><td class="num-col">2.6</td></tr>
+                                    <tr><td>ST-020</td><td>Location Upsilon</td><td>Region North</td><td class="num-col">9,234</td><td class="num-col">4,156</td><td class="num-col trend-down">-1.1%</td><td class="num-col">2.0</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Page -->
+                <div id="performance">
+                    <div class="filter-area" style="margin: -20px -20px 20px -20px; border-top: none;">
+                        <div class="perf-filter-expanded">
+                            <div class="filter-select-group"><span class="filter-label">Category</span><select class="filter-select"><option>Core</option></select></div>
+                            <div class="filter-select-group"><span class="filter-label">Group</span><select class="filter-select"><option>所有</option></select></div>
+                            <div class="filter-select-group"><span class="filter-label">BC</span><select class="filter-select"><option>所有</option></select></div>
+                            <div class="filter-select-group"><span class="filter-label">PG</span><select class="filter-select"><option>所有</option></select></div>
+                            <div class="filter-select-group"><span class="filter-label">Store Type</span><select class="filter-select"><option>所有</option></select></div>
+                            <div class="filter-select-group"><span class="filter-label">BTQ</span><select class="filter-select"><option>所有</option></select></div>
+                            <div class="filter-select-group"><span class="filter-label">City</span><select class="filter-select"><option>所有</option></select></div>
+                            <div class="filter-select-group"><span class="filter-label">FJA</span><select class="filter-select"><option>所有</option></select></div>
+                            <div class="filter-select-group"><span class="filter-label">Sales Unit</span><select class="filter-select"><option>K RMB</option></select></div>
+                        </div>
+                    </div>
+
+                    <div class="perf-kpi-section">
+                        <div class="perf-section-header">Customize</div>
+                        <div class="perf-kpi-grid">
+                            <div class="perf-kpi-card"><span class="label">No. of Staff</span><span class="value">2,296</span><span class="sub-label">Expert: <span class="growth positive">25.3%</span></span></div>
+                            <div class="perf-kpi-card"><span class="label">Monthly Avg Sales*</span><span class="value">171,687</span><span class="sub-label">GR%: <span class="growth positive">10.1%</span></span></div>
+                            <div class="perf-kpi-card"><span class="label">Daily Trans*</span><span class="value">2.7</span><span class="sub-label">GR%: <span class="growth negative">-0.3%</span></span></div>
+                            <div class="perf-kpi-card"><span class="label">SPT</span><span class="value">2,059</span><span class="sub-label">GR%: <span class="growth positive">10.4%</span></span></div>
+                            <div class="perf-kpi-card"><span class="label">Non VIP Trans %</span><span class="value">3.0%</span><span class="sub-label">Single Piece: 52.3%</span></div>
+                            <div class="perf-kpi-card"><span class="label">FRAGRANCE</span><span class="value">110,393,380</span><span class="sub-label">GR%: <span class="growth positive">8.0%</span></span></div>
+                            <div class="perf-kpi-card"><span class="label">SKINCARE</span><span class="value">115,059,940</span><span class="sub-label">GR%: <span class="growth positive">26.1%</span></span></div>
+                        </div>
+                    </div>
+
+                    <div class="perf-kpi-section">
+                        <div class="perf-section-header">National</div>
+                        <div class="perf-kpi-grid">
+                            <div class="perf-kpi-card"><span class="label">No. of Staff</span><span class="value">2,296</span><span class="sub-label">Expert: 25.3%</span></div>
+                            <div class="perf-kpi-card"><span class="label">Monthly Avg Sales*</span><span class="value">171,687</span><span class="sub-label">GR%: 10.1%</span></div>
+                            <div class="perf-kpi-card"><span class="label">Daily Trans*</span><span class="value">2.7</span><span class="sub-label">GR%: -0.3%</span></div>
+                            <div class="perf-kpi-card"><span class="label">SPT</span><span class="value">2,059</span><span class="sub-label">GR%: 10.4%</span></div>
+                            <div class="perf-kpi-card"><span class="label">Non VIP Trans %</span><span class="value">3.0%</span><span class="sub-label">Single Piece: 52.3%</span></div>
+                            <div class="perf-kpi-card"><span class="label">FRAGRANCE</span><span class="value">110,393,380</span><span class="sub-label">GR%: 8.0%</span></div>
+                            <div class="perf-kpi-card"><span class="label">SKINCARE</span><span class="value">115,059,940</span><span class="sub-label">GR%: 26.1%</span></div>
+                        </div>
+                    </div>
+
+                    <div class="perf-chart-row">
+                        <div class="card">
+                            <div class="card-title">Monthly Avg Sales & GR%</div>
+                            <div class="bubble-chart-container"><canvas id="bubbleChart1"></canvas></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">Category MIX Sales</div>
+                            <div class="bubble-chart-container"><canvas id="mixSalesChart"></canvas></div>
+                        </div>
+                    </div>
+
+                    <div class="card table-widget">
+                        <div class="perf-section-header" style="border:none; margin:0; padding: 10px 15px; background: #eee;">Core KPI</div>
+                        <table class="styled-table" style="font-size: 10px;">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2">Core KPI</th>
+                                    <th colspan="4" class="table-sub-header" style="text-align:center;">MTD</th>
+                                    <th colspan="4" class="table-sub-header" style="text-align:center;">YTD</th>
+                                </tr>
+                                <tr>
+                                    <th>CY</th><th>LY</th><th>Growth</th><th>Achieve</th>
+                                    <th>CY</th><th>LY</th><th>Growth</th><th>Run Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Sales</td><td>50,588.0</td><td>70,857.9</td><td class="trend-down">-28.6%</td><td>65.0%</td><td>521,649.0</td><td>570,351.3</td><td class="trend-down">-8.5%</td><td>65.0%</td></tr>
+                                <tr><td>Core Penetration</td><td>6.8%</td><td>9.6%</td><td class="trend-down">-29.0%</td><td>-</td><td>9.5%</td><td>9.6%</td><td class="trend-down">-1.5%</td><td>-</td></tr>
+                                <tr><td>Penetration TTL</td><td>7.5%</td><td>11.5%</td><td class="trend-down">-34.8%</td><td>-</td><td>10.8%</td><td>10.6%</td><td class="trend-up">1.9%</td><td>-</td></tr>
+                                <tr><td># of Trans</td><td>946</td><td>1,411</td><td class="trend-down">-33.0%</td><td>-</td><td>10,320</td><td>11,688</td><td class="trend-down">-11.7%</td><td>-</td></tr>
+                                <tr><td>Qty</td><td>1,117</td><td>1,752</td><td class="trend-down">-36.2%</td><td>-</td><td>12,236</td><td>13,793</td><td class="trend-down">-11.3%</td><td>-</td></tr>
+                                <tr><td>SPT</td><td>53.5</td><td>50.2</td><td class="trend-up">6.5%</td><td>-</td><td>50.5</td><td>48.8</td><td class="trend-up">3.6%</td><td>-</td></tr>
+                                <tr><td>Traffic</td><td>17,927</td><td>7,777</td><td class="trend-up">130.5%</td><td>-</td><td>91,519</td><td>62,026</td><td class="trend-up">47.5%</td><td>-</td></tr>
+                                <tr><td>CR%</td><td>5.3%</td><td>18.1%</td><td class="trend-down">-70.9%</td><td>-</td><td>11.3%</td><td>18.8%</td><td class="trend-down">-40.2%</td><td>-</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+    <script>
+        function showPage(pageId) {
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            document.querySelectorAll('.page-body > div').forEach(page => page.classList.remove('active'));
+            
+            document.getElementById(pageId).classList.add('active');
+            if (event) event.currentTarget.classList.add('active');
+        }
+
+        function showDemoPopup() {
+            document.getElementById('demoModal').style.display = 'flex';
+        }
+
+        function hideDemoPopup() {
+            document.getElementById('demoModal').style.display = 'none';
+        }
+
+        // Charts
+        window.onload = function() {
+            // Summary Trend Chart (Core vs HEB)
+            new Chart(document.getElementById('summaryTrendChart'), {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+                    datasets: [
+                        {
+                            label: 'Core TY',
+                            data: [650, 720, 680, 750, 780, 820, 790, 740, 690],
+                            borderColor: '#000',
+                            backgroundColor: 'rgba(0,0,0,0.05)',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Core LY',
+                            data: [620, 680, 650, 700, 730, 770, 740, 700, 650],
+                            borderColor: '#333',
+                            borderDash: [5, 5],
+                            fill: false,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'HEB TY',
+                            data: [80, 100, 120, 110, 130, 140, 150, 160, 170],
+                            borderColor: '#ff6b35',
+                            backgroundColor: 'rgba(255, 107, 53, 0.05)',
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9 } } }
+                    },
+                    scales: {
+                        y: { display: true, ticks: { font: { size: 9 } } },
+                        x: { display: true, ticks: { font: { size: 9 } } }
+                    }
+                }
+            });
+
+            // Bubble Chart (Performance)
+            new Chart(document.getElementById('bubbleChart1'), {
+                type: 'bubble',
+                data: {
+                    datasets: [
+                        { label: 'BA', data: [{x: 432, y: 11.7, r: 10}], backgroundColor: '#aaa' },
+                        { label: 'CC', data: [{x: 308, y: 12.7, r: 12}], backgroundColor: '#888' },
+                        { label: 'FRS', data: [{x: 619, y: 13.5, r: 15}], backgroundColor: '#000' },
+                        { label: 'MUA', data: [{x: 230, y: 6.1, r: 8}], backgroundColor: '#666' }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { title: { display: true, text: 'Sales (K)', font: { size: 10 } } },
+                        y: { title: { display: true, text: 'Growth %', font: { size: 10 } } }
+                    }
+                }
+            });
+
+            // Category MIX Sales (Stacked Horizontal Bar)
+            new Chart(document.getElementById('mixSalesChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['BA', 'CC', 'FRS', 'MUA', 'Sr. FRS', 'Total Avg'],
+                    datasets: [
+                        { label: 'FRAGRANCE', data: [34, 32, 33, 32, 40, 33], backgroundColor: '#ccc' },
+                        { label: 'MAKEUP', data: [29, 29, 26, 28, 42, 29], backgroundColor: '#000' },
+                        { label: 'SKINCARE', data: [34, 38, 37, 37, 18, 35], backgroundColor: '#eee' }
+                    ]
+                },
+                options: {
+                    indexAxis: 'y',
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { stacked: true, max: 100 },
+                        y: { stacked: true }
+                    },
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9 } } } }
+                }
+            });
+        };
+    </script>
+</body>
+</html>

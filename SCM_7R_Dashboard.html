@@ -1,0 +1,1773 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCM 7R 供应链管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .gradient-pink { background: linear-gradient(135deg, #ff007f 0%, #ff3399 100%); }
+        .gradient-blue { background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
+        .metric-card { border: 2px solid #e5e7eb; }
+        .metric-card:hover { border-color: #ff007f; }
+        .nav-item { transition: all 0.2s; }
+        .nav-item:hover { background-color: rgba(255,0,127,0.1); color: #ff007f; }
+        .nav-item.active { background-color: #ff007f; color: white; }
+        .kpi-value { color: #ff007f; }
+        .brand-badge { font-size: 10px; font-weight: bold; padding: 2px 8px; border-radius: 4px; color: white; }
+        .tab-btn { transition: all 0.2s; }
+        .tab-btn.active { background-color: #ff007f; color: white; }
+        .tab-btn:not(.active):hover { background-color: #f3f4f6; }
+        .sub-nav-item { transition: all 0.2s; border: 1px solid #e5e7eb; }
+        .sub-nav-item.active { background-color: #ff007f; color: white; border-color: #ff007f; }
+        .sub-nav-item:not(.active):hover { background-color: #f9fafb; }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <!-- Navigation -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-[1600px] mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-8">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 gradient-pink rounded-lg flex items-center justify-center">
+                            <span class="text-white font-bold text-sm">7R</span>
+                        </div>
+                        <span class="font-bold text-lg text-slate-800">SCM 7R</span>
+                    </div>
+                    <div class="hidden md:flex items-center gap-1">
+                        <button onclick="showPage('home')" class="nav-item active px-4 py-2 rounded-lg text-sm font-medium" id="nav-home">首页</button>
+                        <button onclick="showPage('psi')" class="nav-item px-4 py-2 rounded-lg text-sm font-medium text-slate-600" id="nav-psi">PSI 核心</button>
+                        <button onclick="showPage('inventory')" class="nav-item px-4 py-2 rounded-lg text-sm font-medium text-slate-600" id="nav-inventory">库存管理</button>
+                        <button onclick="showPage('shipment')" class="nav-item px-4 py-2 rounded-lg text-sm font-medium text-slate-600" id="nav-shipment">发货物流</button>
+                        <button onclick="showPage('cost')" class="nav-item px-4 py-2 rounded-lg text-sm font-medium text-slate-600" id="nav-cost">成本分析</button>
+                        <button onclick="showPage('complaint')" class="nav-item px-4 py-2 rounded-lg text-sm font-medium text-slate-600" id="nav-complaint">客诉分析</button>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="text-xs font-bold text-[#FF007F] bg-pink-50 px-3 py-1 rounded border border-pink-100">2025-12</span>
+                    <div class="w-8 h-8 bg-slate-200 rounded-full"></div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-[1600px] mx-auto px-4 py-6">
+
+        <!-- Home Page - 7R Dashboard -->
+        <div id="page-home" class="page-content">
+            <div class="mb-6">
+                <h1 class="text-2xl font-bold text-slate-800">供应链 7R 管理驾驶舱</h1>
+                <p class="text-slate-500 mt-1">Supply Chain Management 7R Dashboard</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- 7R Definition Card -->
+                <div class="metric-card bg-white rounded-xl overflow-hidden card-hover">
+                    <div class="p-6">
+                        <div class="w-16 h-16 rounded-2xl bg-pink-100 flex items-center justify-center mb-4">
+                            <svg class="w-8 h-8 text-[#ff007f]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-gray-800 font-bold">7R Definition</h3>
+                        <div class="text-gray-600 mt-1">7R 定义</div>
+                        <div class="mt-4 text-sm text-[#ff007f] leading-relaxed">
+                            <p class="py-2">将顾客所希望的正确产品 (Right Product)</p>
+                            <p>能够在正确的时间 (Right Time)、</p>
+                            <p>按正确的数量 (Right Quantity)、</p>
+                            <p>正确的质量 (Right Quality) 和</p>
+                            <p>正确的状态 (Right Status) 送到正确的地点 (Right Place)，</p>
+                            <p>并使成本达到最低程度 (Right Cost)。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Product -->
+                <div class="metric-card bg-white rounded-xl overflow-hidden card-hover">
+                    <div class="p-6">
+                        <div class="w-16 h-16 rounded-2xl bg-blue-100 flex items-center justify-center mb-4">
+                            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-gray-800 font-bold">Right Product</h3>
+                        <div class="text-gray-600 mt-1">正确的产品</div>
+                        <div class="gradient-blue text-white rounded-lg p-4 mt-4">
+                            <div class="text-sm opacity-90 font-bold">出货销售额 GS</div>
+                        </div>
+                        <div class="mt-4 space-y-2">
+                            <div class="text-sm text-gray-600 font-bold">2023年目标 / 实际</div>
+                            <div class="kpi-value text-lg font-bold">86亿 / 39.38亿</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Time -->
+                <div class="metric-card bg-white rounded-xl overflow-hidden card-hover">
+                    <div class="p-6">
+                        <div class="w-16 h-16 rounded-2xl bg-yellow-100 flex items-center justify-center mb-4">
+                            <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-gray-800 font-bold">Right Time</h3>
+                        <div class="text-gray-600 mt-1">正确的时间</div>
+                        <div class="gradient-blue text-white rounded-lg p-4 mt-4">
+                            <div class="text-sm opacity-90 font-bold">订单下达满足率 CFR</div>
+                        </div>
+                        <div class="mt-4 space-y-2">
+                            <div class="text-sm text-gray-600 font-bold">2023年目标 / 实际</div>
+                            <div class="text-sm">
+                                <div class="text-pink-500">国内下达满足率</div>
+                                <div class="text-pink-500">99.0% / 96.98%</div>
+                            </div>
+                            <div class="text-sm">
+                                <div class="text-pink-500">跨境下达满足率</div>
+                                <div class="text-pink-500">98.0% / 99.22%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Quantity -->
+                <div class="metric-card bg-white rounded-xl overflow-hidden card-hover">
+                    <div class="p-6">
+                        <div class="w-16 h-16 rounded-2xl bg-green-100 flex items-center justify-center mb-4">
+                            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-gray-800 font-bold">Right Quantity</h3>
+                        <div class="text-gray-600 mt-1">正确的数量</div>
+                        <div class="gradient-blue text-white rounded-lg p-4 mt-4">
+                            <div class="text-sm opacity-90 font-bold">库存记录准确率 IRA</div>
+                        </div>
+                        <div class="mt-4 space-y-2">
+                            <div class="text-sm text-gray-600 font-bold">2023年目标 / 实际</div>
+                            <div class="text-sm">
+                                <div class="text-pink-500">仓储物流部 99.8% / 99.98%</div>
+                                <div class="text-teal-500">电商物流部 99.0% / 99.40%</div>
+                                <div class="text-pink-500">跨境仓储物流部 99.0% / 99.55%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Quality -->
+                <div class="metric-card bg-white rounded-xl overflow-hidden card-hover">
+                    <div class="p-6">
+                        <div class="w-16 h-16 rounded-2xl bg-teal-100 flex items-center justify-center mb-4">
+                            <svg class="w-8 h-8 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-gray-800 font-bold">Right Quality</h3>
+                        <div class="text-gray-600 mt-1">正确的质量</div>
+                        <div class="gradient-blue text-white rounded-lg p-4 mt-4">
+                            <div class="text-sm opacity-90 font-bold">质量投诉率 PPM</div>
+                        </div>
+                        <div class="mt-4 space-y-2">
+                            <div class="text-sm text-gray-600 font-bold">2023年目标 / 实际</div>
+                            <div class="text-sm text-teal-500">质量投诉率 30 / 36</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Place -->
+                <div class="metric-card bg-white rounded-xl overflow-hidden card-hover">
+                    <div class="p-6">
+                        <div class="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+                            <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-gray-800 font-bold">Right Place</h3>
+                        <div class="text-gray-600 mt-1">正确的地点</div>
+                        <div class="gradient-blue text-white rounded-lg p-4 mt-4">
+                            <div class="text-sm opacity-90 font-bold">订单到货满足率 OTD</div>
+                        </div>
+                        <div class="mt-4 space-y-2">
+                            <div class="text-sm text-gray-600 font-bold">2023年目标 / 实际</div>
+                            <div class="text-sm text-teal-500">订单到货满足率 99.50% / 99.95%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Status -->
+                <div class="metric-card bg-white rounded-xl overflow-hidden card-hover">
+                    <div class="p-6">
+                        <div class="w-16 h-16 rounded-2xl bg-amber-100 flex items-center justify-center mb-4">
+                            <svg class="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-gray-800 font-bold">Right Status</h3>
+                        <div class="text-gray-600 mt-1">正确的状态</div>
+                        <div class="gradient-blue text-white rounded-lg p-4 mt-4">
+                            <div class="text-sm opacity-90 font-bold">超30天回单 OTR / 不良库存 SLOB</div>
+                        </div>
+                        <div class="mt-4 space-y-2">
+                            <div class="text-sm text-gray-600 font-bold">2023年目标 / 实际</div>
+                            <div class="text-sm text-teal-500">超30天回单 0 / 31</div>
+                            <div class="text-sm text-pink-500">国内不良库存金额 3915万 / 6884万</div>
+                            <div class="text-sm text-pink-500">跨境不良库存金额 4753万 / 8685万</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Cost -->
+                <div class="metric-card bg-white rounded-xl overflow-hidden card-hover">
+                    <div class="p-6">
+                        <div class="w-16 h-16 rounded-2xl bg-purple-100 flex items-center justify-center mb-4">
+                            <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-gray-800 font-bold">Right Cost</h3>
+                        <div class="text-gray-600 mt-1">正确的成本</div>
+                        <div class="gradient-blue text-white rounded-lg p-4 mt-4">
+                            <div class="text-sm opacity-90 font-bold">营运成本 Operation Cost</div>
+                        </div>
+                        <div class="mt-4 space-y-1 text-sm">
+                            <div class="text-teal-500">营运成本 5.12亿 / 2.12亿</div>
+                            <div class="text-pink-500">国内库存金额 6.22亿 / 6.98亿</div>
+                            <div class="text-teal-500">跨境库存金额 2.73亿 / 3.84亿</div>
+                            <div class="text-teal-500">国内库存周数 10.7周 / 13.5周</div>
+                            <div class="text-pink-500">跨境库存周数 20.2周 / 31.7周</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PSI Core Dashboard -->
+        <div id="page-psi" class="page-content hidden">
+            <!-- PSI Main Navigation -->
+            <div class="mb-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <button onclick="showPsiTab('shipment')" class="sub-nav-item active px-5 py-2.5 rounded-md text-sm font-medium" id="psi-tab-shipment">出货</button>
+                    <button onclick="showPsiTab('procurement')" class="sub-nav-item px-5 py-2.5 rounded-md text-sm font-medium bg-white text-gray-900" id="psi-tab-procurement">采购</button>
+                    <button onclick="showPsiTab('inventory-psi')" class="sub-nav-item px-5 py-2.5 rounded-md text-sm font-medium bg-white text-gray-900" id="psi-tab-inventory">库存</button>
+                </div>
+
+                <!-- Filters -->
+                <div class="bg-white rounded-lg border border-slate-200 p-4 flex flex-wrap gap-4 items-center">
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-semibold text-gray-500">YearMonth</label>
+                        <select class="w-[110px] h-8 text-xs border border-gray-200 rounded px-2">
+                            <option>202512</option>
+                            <option>202511</option>
+                            <option>202510</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-semibold text-gray-500">Period</label>
+                        <select class="w-[90px] h-8 text-xs border border-gray-200 rounded px-2">
+                            <option>MTD</option>
+                            <option>QTD</option>
+                            <option>YTD</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-semibold text-gray-500">Entity</label>
+                        <select class="w-[90px] h-8 text-xs border border-gray-200 rounded px-2">
+                            <option>Reckitt</option>
+                            <option>Manon</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-semibold text-gray-500">Channel</label>
+                        <select class="w-[90px] h-8 text-xs border border-gray-200 rounded px-2">
+                            <option>Online</option>
+                            <option>Offline</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-semibold text-gray-500">Brand</label>
+                        <select class="w-[80px] h-8 text-xs border border-gray-200 rounded px-2">
+                            <option>All</option>
+                            <option>DUR</option>
+                            <option>DTT</option>
+                            <option>MVF</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-semibold text-gray-500">Dept.</label>
+                        <select class="w-[110px] h-8 text-xs border border-gray-200 rounded px-2">
+                            <option>一部</option>
+                            <option>二部</option>
+                            <option>三部</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shipment Sub-Tabs -->
+            <div id="psi-shipment-subs" class="flex items-center gap-2 mb-4 overflow-x-auto">
+                <button onclick="showShipmentSubTab('overview')" class="sub-nav-item active px-4 py-2 rounded-md text-sm font-medium" id="ship-sub-overview">出货总览</button>
+                <button onclick="showShipmentSubTab('task')" class="sub-nav-item px-4 py-2 rounded-md text-sm font-medium bg-white text-gray-900" id="ship-sub-task">任务达成</button>
+                <button onclick="showShipmentSubTab('detailed')" class="sub-nav-item px-4 py-2 rounded-md text-sm font-medium bg-white text-gray-900" id="ship-sub-detailed">报数明细</button>
+                <button onclick="showShipmentSubTab('ranking')" class="sub-nav-item px-4 py-2 rounded-md text-sm font-medium bg-white text-gray-900" id="ship-sub-ranking">销售排名</button>
+                <button onclick="showShipmentSubTab('channel')" class="sub-nav-item px-4 py-2 rounded-md text-sm font-medium bg-white text-gray-900" id="ship-sub-channel">渠道分析</button>
+                <button onclick="showShipmentSubTab('agent')" class="sub-nav-item px-4 py-2 rounded-md text-sm font-medium bg-white text-gray-900" id="ship-sub-agent">代理商总</button>
+                <button onclick="showShipmentSubTab('brand')" class="sub-nav-item px-4 py-2 rounded-md text-sm font-medium bg-white text-gray-900" id="ship-sub-brand">品牌月度</button>
+            </div>
+
+            <!-- Shipment Overview Content -->
+            <div id="shipment-content-overview" class="psi-shipment-content">
+                <!-- S - 出货指标 -->
+                <div class="bg-white rounded-lg border border-slate-200 p-6 mb-6">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <table class="w-full text-sm">
+                                <tbody>
+                                    <tr>
+                                        <td class="text-gray-600 py-1">达成</td>
+                                        <td class="text-gray-600 py-1">目标</td>
+                                        <td class="text-gray-600 py-1">达成率</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-[#ff007f] text-2xl font-bold">¥38.2M</td>
+                                        <td class="text-[#ff007f] text-2xl font-bold">¥36.7M</td>
+                                        <td class="text-[#ff007f] text-2xl font-bold">104.2%</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="w-32 h-24 bg-gradient-to-br from-pink-100 to-pink-50 rounded-lg flex items-center justify-center">
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-[#ff007f]">104%</div>
+                                <div class="text-xs text-gray-500">完成率</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 出货渠道、出货地图 -->
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+                    <div class="bg-white rounded-lg border border-slate-200">
+                        <div class="px-4 py-3 border-b border-slate-200">
+                            <h4 class="text-sm font-bold text-[#ff007f]">出货渠道</h4>
+                        </div>
+                        <div class="p-4">
+                            <canvas id="psiChannelChart" height="180"></canvas>
+                            <div class="mt-4 space-y-2">
+                                <div class="flex items-center justify-between bg-gray-50 rounded p-2">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-2 h-2 rounded-full bg-[#ff007f]"></div>
+                                        <span class="text-xs">Online</span>
+                                    </div>
+                                    <span class="text-xs text-[#ff007f]">¥22.5M</span>
+                                </div>
+                                <div class="flex items-center justify-between bg-gray-50 rounded p-2">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-2 h-2 rounded-full bg-[#ff99cc]"></div>
+                                        <span class="text-xs">Offline</span>
+                                    </div>
+                                    <span class="text-xs text-[#ff007f]">¥15.7M</span>
+                                </div>
+                                <div class="pt-2 border-t border-gray-200 flex justify-between">
+                                    <span class="text-xs font-bold">Total</span>
+                                    <span class="text-xs text-[#ff007f] font-bold">¥38.2M</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-3 bg-white rounded-lg border border-slate-200">
+                        <div class="px-4 py-3 border-b border-slate-200">
+                            <h4 class="text-sm font-bold text-[#ff007f]">出货地图</h4>
+                        </div>
+                        <div class="p-4">
+                            <div class="grid grid-cols-4 gap-4">
+                                <div class="p-4 bg-blue-50 rounded-lg text-center">
+                                    <div class="text-lg font-bold text-blue-600">华东区</div>
+                                    <div class="text-2xl font-bold text-[#ff007f] mt-2">¥15.2M</div>
+                                    <div class="text-xs text-gray-500">占比 39.8%</div>
+                                </div>
+                                <div class="p-4 bg-green-50 rounded-lg text-center">
+                                    <div class="text-lg font-bold text-green-600">华南区</div>
+                                    <div class="text-2xl font-bold text-[#ff007f] mt-2">¥12.8M</div>
+                                    <div class="text-xs text-gray-500">占比 33.5%</div>
+                                </div>
+                                <div class="p-4 bg-purple-50 rounded-lg text-center">
+                                    <div class="text-lg font-bold text-purple-600">华北区</div>
+                                    <div class="text-2xl font-bold text-[#ff007f] mt-2">¥6.5M</div>
+                                    <div class="text-xs text-gray-500">占比 17.0%</div>
+                                </div>
+                                <div class="p-4 bg-orange-50 rounded-lg text-center">
+                                    <div class="text-lg font-bold text-orange-600">其他</div>
+                                    <div class="text-2xl font-bold text-[#ff007f] mt-2">¥3.7M</div>
+                                    <div class="text-xs text-gray-500">占比 9.7%</div>
+                                </div>
+                            </div>
+                            <div class="mt-4 h-48 bg-slate-100 rounded-lg flex items-center justify-center">
+                                <div class="text-center text-gray-400">
+                                    <svg class="w-16 h-16 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <div>中国地图区域分布</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 出货趋势、大部门出货、品牌出货 -->
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="space-y-6">
+                        <div class="bg-white rounded-lg border border-slate-200">
+                            <div class="px-4 py-3 border-b border-slate-200">
+                                <h4 class="text-sm font-bold text-[#ff007f]">出货趋势</h4>
+                            </div>
+                            <div class="p-4">
+                                <canvas id="psiTrendChart" height="220"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg border border-slate-200">
+                            <div class="px-4 py-3 border-b border-slate-200">
+                                <h4 class="text-sm font-bold text-[#ff007f]">大部门出货</h4>
+                            </div>
+                            <div class="p-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="p-4 rounded-lg border border-gray-200 bg-gradient-to-br from-white to-gray-50">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-3 h-3 rounded-full bg-gradient-to-br from-[#ff007f] to-[#ff3399]"></div>
+                                                <span class="text-gray-700">一部</span>
+                                            </div>
+                                            <span class="px-2 py-1 rounded text-xs bg-green-100 text-green-700">107.8%</span>
+                                        </div>
+                                        <div class="space-y-2">
+                                            <div class="flex justify-between text-sm">
+                                                <span class="text-gray-500">实际</span>
+                                                <span class="text-[#ff007f]">4.85M</span>
+                                            </div>
+                                            <div class="flex justify-between text-sm">
+                                                <span class="text-gray-500">目标</span>
+                                                <span class="text-gray-600">4.50M</span>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                            <div class="h-full bg-gradient-to-r from-[#ff007f] to-[#ff3399] rounded-full" style="width: 100%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="p-4 rounded-lg border border-gray-200 bg-gradient-to-br from-white to-gray-50">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-3 h-3 rounded-full bg-gradient-to-br from-[#ff3399] to-[#ff66b2]"></div>
+                                                <span class="text-gray-700">二部</span>
+                                            </div>
+                                            <span class="px-2 py-1 rounded text-xs bg-orange-100 text-orange-700">93.3%</span>
+                                        </div>
+                                        <div class="space-y-2">
+                                            <div class="flex justify-between text-sm">
+                                                <span class="text-gray-500">实际</span>
+                                                <span class="text-[#ff007f]">3.92M</span>
+                                            </div>
+                                            <div class="flex justify-between text-sm">
+                                                <span class="text-gray-500">目标</span>
+                                                <span class="text-gray-600">4.20M</span>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                            <div class="h-full bg-gradient-to-r from-[#ff3399] to-[#ff66b2] rounded-full" style="width: 93.3%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="p-4 rounded-lg border border-gray-200 bg-gradient-to-br from-white to-gray-50">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-3 h-3 rounded-full bg-gradient-to-br from-[#ff007f] to-[#cc0066]"></div>
+                                                <span class="text-gray-700">三部</span>
+                                            </div>
+                                            <span class="px-2 py-1 rounded text-xs bg-green-100 text-green-700">105.6%</span>
+                                        </div>
+                                        <div class="space-y-2">
+                                            <div class="flex justify-between text-sm">
+                                                <span class="text-gray-500">实际</span>
+                                                <span class="text-[#ff007f]">5.28M</span>
+                                            </div>
+                                            <div class="flex justify-between text-sm">
+                                                <span class="text-gray-500">目标</span>
+                                                <span class="text-gray-600">5.00M</span>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                            <div class="h-full bg-gradient-to-r from-[#ff007f] to-[#cc0066] rounded-full" style="width: 100%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="p-4 rounded-lg border border-gray-200 bg-gradient-to-br from-white to-gray-50">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-3 h-3 rounded-full bg-gradient-to-br from-[#ff66b2] to-[#ff99cc]"></div>
+                                                <span class="text-gray-700">台湾事业部</span>
+                                            </div>
+                                            <span class="px-2 py-1 rounded text-xs bg-green-100 text-green-700">107.5%</span>
+                                        </div>
+                                        <div class="space-y-2">
+                                            <div class="flex justify-between text-sm">
+                                                <span class="text-gray-500">实际</span>
+                                                <span class="text-[#ff007f]">2.15M</span>
+                                            </div>
+                                            <div class="flex justify-between text-sm">
+                                                <span class="text-gray-500">目标</span>
+                                                <span class="text-gray-600">2.00M</span>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                            <div class="h-full bg-gradient-to-r from-[#ff66b2] to-[#ff99cc] rounded-full" style="width: 100%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg border border-slate-200">
+                        <div class="px-4 py-3 border-b border-slate-200">
+                            <h4 class="text-sm font-bold text-[#ff007f]">品牌出货</h4>
+                        </div>
+                        <div class="p-4">
+                            <table class="w-full border-collapse">
+                                <thead>
+                                    <tr class="border-b-2 border-gray-300">
+                                        <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Brand</th>
+                                        <th class="text-center py-3 px-2 text-sm font-semibold text-gray-700">Actual vs Target</th>
+                                        <th class="text-center py-3 px-2 text-sm font-semibold text-gray-700">Target to Go</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b-2 border-gray-400 bg-gray-100 font-semibold">
+                                        <td class="py-3 px-2">Total</td>
+                                        <td class="py-3 px-2">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-full bg-gray-200 rounded h-3 overflow-hidden">
+                                                    <div class="h-full bg-[#ff007f] rounded" style="width: 104%"></div>
+                                                </div>
+                                                <span class="text-xs">104%</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-2 text-center text-green-600">+4.2%</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-200">
+                                        <td class="py-3 px-2">Dettol</td>
+                                        <td class="py-3 px-2">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-full bg-gray-200 rounded h-3 overflow-hidden">
+                                                    <div class="h-full bg-[#ff007f] rounded" style="width: 110%"></div>
+                                                </div>
+                                                <span class="text-xs">275/250</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-2 text-center text-green-600">+10.0%</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-200">
+                                        <td class="py-3 px-2">Finish</td>
+                                        <td class="py-3 px-2">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-full bg-gray-200 rounded h-3 overflow-hidden">
+                                                    <div class="h-full bg-[#ff007f] rounded" style="width: 122%"></div>
+                                                </div>
+                                                <span class="text-xs">122/100</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-2 text-center text-green-600">+22.0%</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-200">
+                                        <td class="py-3 px-2">Durex</td>
+                                        <td class="py-3 px-2">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-full bg-gray-200 rounded h-3 overflow-hidden">
+                                                    <div class="h-full bg-[#ff007f] rounded" style="width: 102%"></div>
+                                                </div>
+                                                <span class="text-xs">305/300</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-2 text-center text-green-600">+1.7%</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-200">
+                                        <td class="py-3 px-2">Vanish</td>
+                                        <td class="py-3 px-2">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-full bg-gray-200 rounded h-3 overflow-hidden">
+                                                    <div class="h-full bg-[#ff007f] rounded" style="width: 88%"></div>
+                                                </div>
+                                                <span class="text-xs">88/100</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-2 text-center text-red-600">-12.0%</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-200">
+                                        <td class="py-3 px-2">Airwick</td>
+                                        <td class="py-3 px-2">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-full bg-gray-200 rounded h-3 overflow-hidden">
+                                                    <div class="h-full bg-[#ff007f] rounded" style="width: 63%"></div>
+                                                </div>
+                                                <span class="text-xs">25/40</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-2 text-center text-red-600">-37.5%</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Report Content -->
+            <div id="shipment-content-detailed" class="psi-shipment-content hidden">
+                <div class="bg-gray-50 border-l-4 border-l-[#ff007f] rounded-lg p-4 mb-6">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 bg-[#ff007f] rounded flex items-center justify-center text-white text-xs">RB</div>
+                            <h2 class="text-base">出货报告(报数明细)</h2>
+                        </div>
+                        <div class="flex gap-2">
+                            <select class="w-[90px] h-7 text-xs border rounded px-2"><option>All</option></select>
+                            <select class="w-[90px] h-7 text-xs border rounded px-2"><option>一部</option></select>
+                            <select class="w-[90px] h-7 text-xs border rounded px-2"><option>All</option></select>
+                            <select class="w-[70px] h-7 text-xs border rounded px-2"><option>CNY</option></select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-6 mb-6">
+                    <div class="bg-white rounded-lg border-l-4 border-l-[#ff007f] shadow-sm p-6 text-center">
+                        <div class="text-gray-500 text-xs mb-2">YTD累计出货</div>
+                        <div class="text-3xl text-[#ff007f] mb-1">13,099K</div>
+                        <div class="text-xs text-gray-500">目标: 17,080K</div>
+                    </div>
+                    <div class="bg-white rounded-lg border-l-4 border-l-blue-500 shadow-sm p-6 text-center">
+                        <div class="text-gray-500 text-xs mb-2">MTD当月出货</div>
+                        <div class="text-3xl text-blue-500 mb-1">597K</div>
+                        <div class="text-xs text-gray-500">目标: 760K</div>
+                    </div>
+                    <div class="bg-white rounded-lg border-l-4 border-l-green-500 shadow-sm p-6 text-center">
+                        <div class="text-gray-500 text-xs mb-2">YTD完成率</div>
+                        <div class="text-3xl text-green-500 mb-1">77%</div>
+                        <div class="text-xs text-gray-500">vs. 目标 100%</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6 mb-6">
+                    <div class="bg-white rounded-lg border border-slate-200">
+                        <div class="bg-[#ff007f] text-white px-4 py-3 rounded-t">
+                            <h4 class="text-sm font-bold">月度出货趋势</h4>
+                        </div>
+                        <div class="p-4">
+                            <canvas id="detailedMonthlyChart" height="280"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg border border-slate-200">
+                        <div class="bg-[#ff007f] text-white px-4 py-3 rounded-t">
+                            <h4 class="text-sm font-bold">品牌月度汇总</h4>
+                        </div>
+                        <div class="p-4">
+                            <canvas id="detailedBrandChart" height="280"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg border border-slate-200 mb-6">
+                    <div class="bg-[#ff007f] text-white px-4 py-3 rounded-t">
+                        <h4 class="text-sm font-bold">部门对比分析</h4>
+                    </div>
+                    <div class="p-4 overflow-auto">
+                        <table class="w-full text-xs">
+                            <thead>
+                                <tr class="border-b-2 border-gray-300 bg-gray-100">
+                                    <th class="text-left py-2 px-2">部门</th>
+                                    <th class="text-right py-2 px-2">实际 (ACT)</th>
+                                    <th class="text-right py-2 px-2">预算 (SDA)</th>
+                                    <th class="text-right py-2 px-2">完成率</th>
+                                    <th class="text-right py-2 px-2">vs. 目标</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b hover:bg-gray-50">
+                                    <td class="py-2 px-2">一部</td>
+                                    <td class="text-right py-2 px-2 text-[#ff007f]">13,099</td>
+                                    <td class="text-right py-2 px-2">17,080</td>
+                                    <td class="text-right py-2 px-2"><span class="px-2 py-1 rounded bg-orange-100 text-orange-700">77%</span></td>
+                                    <td class="text-right py-2 px-2 text-red-600">-3,981</td>
+                                </tr>
+                                <tr class="border-b hover:bg-gray-50">
+                                    <td class="py-2 px-2">二部</td>
+                                    <td class="text-right py-2 px-2 text-[#ff007f]">0</td>
+                                    <td class="text-right py-2 px-2">0</td>
+                                    <td class="text-right py-2 px-2"><span class="px-2 py-1 rounded bg-gray-100 text-gray-700">0%</span></td>
+                                    <td class="text-right py-2 px-2 text-gray-600">0</td>
+                                </tr>
+                                <tr class="border-b hover:bg-gray-50">
+                                    <td class="py-2 px-2">三部</td>
+                                    <td class="text-right py-2 px-2 text-[#ff007f]">0</td>
+                                    <td class="text-right py-2 px-2">0</td>
+                                    <td class="text-right py-2 px-2"><span class="px-2 py-1 rounded bg-gray-100 text-gray-700">0%</span></td>
+                                    <td class="text-right py-2 px-2 text-gray-600">0</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg border border-slate-200">
+                    <div class="bg-[#ff007f] text-white px-4 py-3 rounded-t">
+                        <h4 class="text-sm font-bold">品牌月度明细表</h4>
+                    </div>
+                    <div class="p-4 overflow-x-auto">
+                        <table class="w-full text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 border-b-2 border-gray-300">
+                                    <th class="border border-gray-300 px-3 py-2 text-left">部门</th>
+                                    <th class="border border-gray-300 px-3 py-2 text-left">品牌</th>
+                                    <th class="border border-gray-300 px-3 py-2 text-right">1月</th>
+                                    <th class="border border-gray-300 px-3 py-2 text-right">2月</th>
+                                    <th class="border border-gray-300 px-3 py-2 text-right">3月</th>
+                                    <th class="border border-gray-300 px-3 py-2 text-right">4月</th>
+                                    <th class="border border-gray-300 px-3 py-2 text-right">5月</th>
+                                    <th class="border border-gray-300 px-3 py-2 text-right">6月</th>
+                                    <th class="border border-gray-300 px-3 py-2 text-right">7月</th>
+                                    <th class="border border-gray-300 px-3 py-2 text-right">8月</th>
+                                    <th class="border border-gray-300 px-3 py-2 text-right">9月</th>
+                                    <th class="border border-gray-300 px-3 py-2 text-right">10月</th>
+                                    <th class="border border-gray-300 px-3 py-2 text-right">11月</th>
+                                    <th class="border border-gray-300 px-3 py-2 text-right">12月</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="bg-[#ff007f] text-white font-semibold">
+                                    <td class="border border-gray-300 px-3 py-2"></td>
+                                    <td class="border border-gray-300 px-3 py-2">Subtotal</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">10,081</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">729</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">364</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">798</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">578</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">888</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">829</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">855</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">994</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">981</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">760</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">597</td>
+                                </tr>
+                                <tr class="bg-white">
+                                    <td class="border border-gray-300 px-3 py-2"></td>
+                                    <td class="border border-gray-300 px-3 py-2">杜蕾斯 Durex</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">1,764</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">291</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">329</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">262</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">401</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">155</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">371</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">425</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">462</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">513</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">374</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">281</td>
+                                </tr>
+                                <tr class="bg-gray-50">
+                                    <td class="border border-gray-300 px-3 py-2"></td>
+                                    <td class="border border-gray-300 px-3 py-2">滴露 Dettol</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">4,447</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">289</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">89</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">292</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">401</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">155</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">371</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">425</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">462</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">513</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">374</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">281</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventory Management Page -->
+        <div id="page-inventory" class="page-content hidden">
+            <div class="mb-6">
+                <h1 class="text-2xl font-bold text-slate-800">库存管理仪表板</h1>
+                <p class="text-slate-500 mt-1">Inventory Management Dashboard</p>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+                <div class="bg-white rounded-lg border border-slate-200 shadow-sm p-4">
+                    <div class="text-xs font-bold text-slate-500 uppercase mb-2">Net Inventory</div>
+                    <div class="text-2xl font-bold kpi-value">795,334</div>
+                </div>
+                <div class="bg-white rounded-lg border border-slate-200 shadow-sm p-4">
+                    <div class="text-xs font-bold text-slate-500 uppercase mb-2">Gross Inventory</div>
+                    <div class="text-2xl font-bold kpi-value">809,851</div>
+                </div>
+                <div class="bg-white rounded-lg border border-slate-200 shadow-sm p-4">
+                    <div class="text-xs font-bold text-slate-500 uppercase mb-2">Provision</div>
+                    <div class="text-2xl font-bold kpi-value">14,516</div>
+                </div>
+                <div class="bg-white rounded-lg border border-slate-200 shadow-sm p-4">
+                    <div class="text-xs font-bold text-slate-500 uppercase mb-2">WOS</div>
+                    <div class="text-2xl font-bold kpi-value">13.9</div>
+                </div>
+                <div class="bg-white rounded-lg border border-slate-200 shadow-sm p-4">
+                    <div class="text-xs font-bold text-slate-500 uppercase mb-2">QTY (CA)</div>
+                    <div class="text-2xl font-bold kpi-value">8,256</div>
+                </div>
+                <div class="bg-white rounded-lg border border-slate-200 shadow-sm p-4">
+                    <div class="text-xs font-bold text-slate-500 uppercase mb-2">SKU</div>
+                    <div class="text-2xl font-bold kpi-value">1,014</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-12 gap-6">
+                <!-- Left Column -->
+                <div class="col-span-12 lg:col-span-8 space-y-6">
+                    <!-- Inventory Overview Chart -->
+                    <div class="bg-white rounded-lg border border-slate-200 shadow-sm">
+                        <div class="px-4 py-3 border-b border-slate-200 flex justify-between items-center">
+                            <h4 class="text-sm font-bold uppercase text-slate-700">Inventory Overview</h4>
+                            <span class="text-xs font-bold text-[#FF007F] bg-pink-50 px-2 py-1 rounded border border-pink-100">2025-12</span>
+                        </div>
+                        <div class="p-4">
+                            <canvas id="inventoryChart" height="250"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Brand Treemap -->
+                    <div class="bg-white rounded-lg border border-slate-200 shadow-sm">
+                        <div class="px-4 py-3 border-b border-slate-200 flex justify-between items-center">
+                            <h4 class="text-sm font-bold uppercase text-slate-700">Gross Inventory by Brand</h4>
+                            <span class="text-xs font-bold text-[#FF007F] bg-pink-50 px-2 py-1 rounded border border-pink-100">2025-12</span>
+                        </div>
+                        <div class="p-4">
+                            <div class="grid grid-cols-4 gap-2">
+                                <div class="p-4 rounded text-white text-center" style="background-color: #6f42c1;">
+                                    <div class="font-bold">Move Free</div>
+                                    <div class="text-sm">282,691</div>
+                                </div>
+                                <div class="p-4 rounded text-white text-center" style="background-color: #0056b3;">
+                                    <div class="font-bold">Durex</div>
+                                    <div class="text-sm">94,435</div>
+                                </div>
+                                <div class="p-4 rounded text-white text-center" style="background-color: #6610f2;">
+                                    <div class="font-bold">Schiff</div>
+                                    <div class="text-sm">83,710</div>
+                                </div>
+                                <div class="p-4 rounded text-white text-center" style="background-color: #28a745;">
+                                    <div class="font-bold">Dettol</div>
+                                    <div class="text-sm">47,673</div>
+                                </div>
+                                <div class="p-4 rounded text-white text-center" style="background-color: #17a2b8;">
+                                    <div class="font-bold">Intima</div>
+                                    <div class="text-sm">41,091</div>
+                                </div>
+                                <div class="p-4 rounded text-white text-center" style="background-color: #007bff;">
+                                    <div class="font-bold">Finish</div>
+                                    <div class="text-sm">38,000</div>
+                                </div>
+                                <div class="p-4 rounded text-white text-center" style="background-color: #e83e8c;">
+                                    <div class="font-bold">Veet</div>
+                                    <div class="text-sm">35,000</div>
+                                </div>
+                                <div class="p-4 rounded text-white text-center" style="background-color: #6c757d;">
+                                    <div class="font-bold">Others</div>
+                                    <div class="text-sm">187,000</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="col-span-12 lg:col-span-4 space-y-6">
+                    <!-- Brand Cards -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-white rounded-lg border border-slate-200 p-3">
+                            <div class="brand-badge mb-2" style="background-color: #0056b3;">DUREX</div>
+                            <div class="space-y-1 text-sm">
+                                <div class="flex justify-between"><span class="text-gray-500">Net</span><span class="font-bold">92,457</span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">QTY</span><span class="font-bold">1,404</span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">WOS</span><span class="font-bold kpi-value">9.1</span></div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-lg border border-slate-200 p-3">
+                            <div class="brand-badge mb-2" style="background-color: #28a745;">DETTOL</div>
+                            <div class="space-y-1 text-sm">
+                                <div class="flex justify-between"><span class="text-gray-500">Net</span><span class="font-bold">157,592</span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">QTY</span><span class="font-bold">3,616</span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">WOS</span><span class="font-bold kpi-value">8.0</span></div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-lg border border-slate-200 p-3">
+                            <div class="brand-badge mb-2" style="background-color: #6f42c1;">MOVE FREE</div>
+                            <div class="space-y-1 text-sm">
+                                <div class="flex justify-between"><span class="text-gray-500">Net</span><span class="font-bold">279,947</span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">QTY</span><span class="font-bold">608</span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">WOS</span><span class="font-bold kpi-value">19.2</span></div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-lg border border-slate-200 p-3">
+                            <div class="brand-badge mb-2" style="background-color: #e83e8c;">INTIMA</div>
+                            <div class="space-y-1 text-sm">
+                                <div class="flex justify-between"><span class="text-gray-500">Net</span><span class="font-bold">45,554</span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">QTY</span><span class="font-bold">528</span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">WOS</span><span class="font-bold kpi-value">24.2</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stock Aging -->
+                    <div class="bg-white rounded-lg border border-slate-200 shadow-sm">
+                        <div class="px-4 py-3 border-b border-slate-200 flex justify-between items-center">
+                            <h4 class="text-sm font-bold uppercase text-slate-700">Stock Aging</h4>
+                            <span class="text-xs font-bold text-[#FF007F] bg-pink-50 px-2 py-1 rounded border border-pink-100">2025-12</span>
+                        </div>
+                        <div class="p-4">
+                            <canvas id="agingChart" height="200"></canvas>
+                            <div class="mt-4 space-y-2">
+                                <div class="flex justify-between items-center text-sm">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-3 h-3 rounded-full bg-[#fbcfe8]"></div>
+                                        <span class="text-gray-500">>= 1/3 lifeday</span>
+                                    </div>
+                                    <span class="font-bold">27,093 (3.3%)</span>
+                                </div>
+                                <div class="flex justify-between items-center text-sm">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-3 h-3 rounded-full bg-[#FF007F]"></div>
+                                        <span class="text-gray-500">< 1/3 lifeday</span>
+                                    </div>
+                                    <span class="font-bold">782,758 (96.7%)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Provision -->
+                    <div class="bg-white rounded-lg border border-slate-200 shadow-sm">
+                        <div class="px-4 py-3 border-b border-slate-200 flex justify-between items-center">
+                            <h4 class="text-sm font-bold uppercase text-slate-700">Provision</h4>
+                            <span class="text-xs font-bold text-[#FF007F] bg-pink-50 px-2 py-1 rounded border border-pink-100">2025-12</span>
+                        </div>
+                        <div class="p-4">
+                            <canvas id="provisionChart" height="200"></canvas>
+                            <div class="mt-4 space-y-2">
+                                <div class="flex justify-between items-center text-sm">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-3 h-3 rounded-full bg-[#d63384]"></div>
+                                        <span class="text-gray-500">Slow moving</span>
+                                    </div>
+                                    <span class="font-bold">6,008 (41.3%)</span>
+                                </div>
+                                <div class="flex justify-between items-center text-sm">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-3 h-3 rounded-full bg-[#a61e4d]"></div>
+                                        <span class="text-gray-500">Comm. critical</span>
+                                    </div>
+                                    <span class="font-bold">56 (0.4%)</span>
+                                </div>
+                                <div class="flex justify-between items-center text-sm">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-3 h-3 rounded-full bg-[#f06595]"></div>
+                                        <span class="text-gray-500">Normal</span>
+                                    </div>
+                                    <span class="font-bold">8,452 (58.3%)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shipment Page -->
+        <div id="page-shipment" class="page-content hidden">
+            <div class="mb-6">
+                <h1 class="text-2xl font-bold text-slate-800">发货物流仪表板</h1>
+                <p class="text-slate-500 mt-1">Shipment & Logistics Dashboard</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div class="bg-white rounded-lg border border-slate-200 p-6">
+                    <div class="text-sm text-slate-500 mb-2">本月发货总量</div>
+                    <div class="text-3xl font-bold kpi-value">125,847</div>
+                    <div class="text-sm text-green-500 mt-1">↑ 12.5% 较上月</div>
+                </div>
+                <div class="bg-white rounded-lg border border-slate-200 p-6">
+                    <div class="text-sm text-slate-500 mb-2">准时交付率</div>
+                    <div class="text-3xl font-bold kpi-value">96.8%</div>
+                    <div class="text-sm text-green-500 mt-1">↑ 2.1% 较上月</div>
+                </div>
+                <div class="bg-white rounded-lg border border-slate-200 p-6">
+                    <div class="text-sm text-slate-500 mb-2">平均运输天数</div>
+                    <div class="text-3xl font-bold kpi-value">3.2</div>
+                    <div class="text-sm text-red-500 mt-1">↓ 0.5天 较上月</div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg border border-slate-200 shadow-sm">
+                <div class="px-4 py-3 border-b border-slate-200">
+                    <h4 class="text-sm font-bold uppercase text-slate-700">发货趋势分析</h4>
+                </div>
+                <div class="p-4">
+                    <canvas id="shipmentChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cost Analysis Page -->
+        <div id="page-cost" class="page-content hidden">
+            <div class="mb-6">
+                <h1 class="text-2xl font-bold text-slate-800">成本分析仪表板</h1>
+                <p class="text-slate-500 mt-1">Cost Analysis Dashboard</p>
+            </div>
+
+            <!-- Filters -->
+            <div class="bg-white rounded-lg border border-slate-200 p-4 mb-6 flex flex-wrap gap-4 items-center">
+                <div class="flex items-center gap-2">
+                    <label class="text-sm text-gray-600">场景对比:</label>
+                    <select class="w-[180px] h-9 text-sm border border-gray-200 rounded px-2">
+                        <option>SDA标准</option>
+                        <option>去年同期</option>
+                        <option>预算对比</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="text-sm text-gray-600">货币单位:</label>
+                    <select class="w-[180px] h-9 text-sm border border-gray-200 rounded px-2" id="costCurrency" onchange="updateCostCharts()">
+                        <option value="CNY">人民币 (CNY)</option>
+                        <option value="USD">美元 (USD)</option>
+                        <option value="TWD">新台币 (TWD)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Key Metrics -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white rounded-lg border-t-4 border-t-[#ff007f] shadow-sm p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600 mb-1">总成本</p>
+                            <p class="text-2xl font-bold text-[#ff007f]" id="totalCost">¥6,880,000</p>
+                            <p class="text-xs text-gray-500 mt-1">本月累计</p>
+                        </div>
+                        <svg class="h-12 w-12 text-[#ff007f] opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg border-t-4 border-t-[#ff66b2] shadow-sm p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600 mb-1">环比变化</p>
+                            <p class="text-2xl font-bold text-[#ff007f]">+2.4%</p>
+                            <p class="text-xs text-orange-600 mt-1">▲ 较上月上升</p>
+                        </div>
+                        <svg class="h-12 w-12 text-[#ff66b2] opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg border-t-4 border-t-[#10b981] shadow-sm p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600 mb-1">预算执行率</p>
+                            <p class="text-2xl font-bold text-[#ff007f]">96.8%</p>
+                            <p class="text-xs text-green-600 mt-1">✓ 在控范围内</p>
+                        </div>
+                        <svg class="h-12 w-12 text-[#10b981] opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg border-t-4 border-t-[#f59e0b] shadow-sm p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600 mb-1">单位成本</p>
+                            <p class="text-2xl font-bold text-[#ff007f]" id="unitCost">¥12.5</p>
+                            <p class="text-xs text-gray-500 mt-1">每件平均</p>
+                        </div>
+                        <svg class="h-12 w-12 text-[#f59e0b] opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cost Structure Analysis -->
+            <div class="bg-white rounded-lg border border-slate-200 shadow-sm mb-6">
+                <div class="px-4 py-3 border-b border-slate-200">
+                    <h4 class="text-sm font-bold text-[#ff007f]">成本结构分析 - 瀑布图</h4>
+                </div>
+                <div class="p-4">
+                    <canvas id="costWaterfallChart" height="350"></canvas>
+                    <div class="mt-6 grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                            <div class="w-4 h-4 rounded" style="background-color: #ff007f"></div>
+                            <div class="flex-1">
+                                <p class="text-sm">仓储成本</p>
+                                <p class="text-xs text-gray-600">35.6%</p>
+                            </div>
+                            <p class="text-sm cost-amount" data-cny="2450000">¥2,450,000</p>
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                            <div class="w-4 h-4 rounded" style="background-color: #ff3399"></div>
+                            <div class="flex-1">
+                                <p class="text-sm">物流成本</p>
+                                <p class="text-xs text-gray-600">26.9%</p>
+                            </div>
+                            <p class="text-sm cost-amount" data-cny="1850000">¥1,850,000</p>
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                            <div class="w-4 h-4 rounded" style="background-color: #ff66b2"></div>
+                            <div class="flex-1">
+                                <p class="text-sm">人力成本</p>
+                                <p class="text-xs text-gray-600">17.4%</p>
+                            </div>
+                            <p class="text-sm cost-amount" data-cny="1200000">¥1,200,000</p>
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                            <div class="w-4 h-4 rounded" style="background-color: #ff99cc"></div>
+                            <div class="flex-1">
+                                <p class="text-sm">管理成本</p>
+                                <p class="text-xs text-gray-600">9.4%</p>
+                            </div>
+                            <p class="text-sm cost-amount" data-cny="650000">¥650,000</p>
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                            <div class="w-4 h-4 rounded" style="background-color: #ffcce5"></div>
+                            <div class="flex-1">
+                                <p class="text-sm">包装成本</p>
+                                <p class="text-xs text-gray-600">6.5%</p>
+                            </div>
+                            <p class="text-sm cost-amount" data-cny="450000">¥450,000</p>
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                            <div class="w-4 h-4 rounded" style="background-color: #ffe6f2"></div>
+                            <div class="flex-1">
+                                <p class="text-sm">其他成本</p>
+                                <p class="text-xs text-gray-600">4.1%</p>
+                            </div>
+                            <p class="text-sm cost-amount" data-cny="280000">¥280,000</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Comparison -->
+            <div class="bg-white rounded-lg border border-slate-200 shadow-sm mb-6">
+                <div class="px-4 py-3 border-b border-slate-200">
+                    <h4 class="text-sm font-bold text-[#ff007f]">月度成本环比分析</h4>
+                </div>
+                <div class="p-4">
+                    <canvas id="costMonthlyChart" height="300"></canvas>
+                </div>
+            </div>
+
+            <!-- Budget Execution -->
+            <div class="bg-white rounded-lg border border-slate-200 shadow-sm mb-6">
+                <div class="px-4 py-3 border-b border-slate-200">
+                    <h4 class="text-sm font-bold text-[#ff007f]">预算执行情况 - 子弹图</h4>
+                </div>
+                <div class="p-4 space-y-4">
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm">仓储部门</span>
+                            <span class="text-sm text-gray-600">94.2% (¥2,450,000 / ¥2,600,000)</span>
+                        </div>
+                        <div class="relative h-10 bg-gray-100 rounded-lg overflow-hidden">
+                            <div class="absolute inset-0 bg-gray-200"></div>
+                            <div class="absolute top-0 left-0 h-full bg-gray-300" style="width: 86.7%"></div>
+                            <div class="absolute top-1/2 -translate-y-1/2 h-6 bg-[#ff007f] rounded text-white text-xs flex items-center justify-end pr-2" style="width: 81.7%">94.2%</div>
+                            <div class="absolute top-0 h-full w-1 bg-gray-700" style="left: 86.7%"></div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm">物流部门</span>
+                            <span class="text-sm text-gray-600">97.4% (¥1,850,000 / ¥1,900,000)</span>
+                        </div>
+                        <div class="relative h-10 bg-gray-100 rounded-lg overflow-hidden">
+                            <div class="absolute inset-0 bg-gray-200"></div>
+                            <div class="absolute top-0 left-0 h-full bg-gray-300" style="width: 86.4%"></div>
+                            <div class="absolute top-1/2 -translate-y-1/2 h-6 bg-[#ff007f] rounded text-white text-xs flex items-center justify-end pr-2" style="width: 84.1%">97.4%</div>
+                            <div class="absolute top-0 h-full w-1 bg-gray-700" style="left: 86.4%"></div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm">人力资源</span>
+                            <span class="text-sm text-gray-600">104.3% (¥1,200,000 / ¥1,150,000)</span>
+                        </div>
+                        <div class="relative h-10 bg-gray-100 rounded-lg overflow-hidden">
+                            <div class="absolute inset-0 bg-gray-200"></div>
+                            <div class="absolute top-0 left-0 h-full bg-gray-300" style="width: 82.1%"></div>
+                            <div class="absolute top-1/2 -translate-y-1/2 h-6 bg-[#ff007f] rounded text-white text-xs flex items-center justify-end pr-2" style="width: 85.7%">104.3%</div>
+                            <div class="absolute top-0 h-full w-1 bg-gray-700" style="left: 82.1%"></div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm">运营管理</span>
+                            <span class="text-sm text-gray-600">92.9% (¥650,000 / ¥700,000)</span>
+                        </div>
+                        <div class="relative h-10 bg-gray-100 rounded-lg overflow-hidden">
+                            <div class="absolute inset-0 bg-gray-200"></div>
+                            <div class="absolute top-0 left-0 h-full bg-gray-300" style="width: 82.4%"></div>
+                            <div class="absolute top-1/2 -translate-y-1/2 h-6 bg-[#ff007f] rounded text-white text-xs flex items-center justify-end pr-2" style="width: 76.5%">92.9%</div>
+                            <div class="absolute top-0 h-full w-1 bg-gray-700" style="left: 82.4%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Complaint Page -->
+        <div id="page-complaint" class="page-content hidden">
+            <div class="mb-6">
+                <h1 class="text-2xl font-bold text-slate-800">客诉分析</h1>
+                <p class="text-slate-500 mt-1">Customer Complaint Analysis</p>
+            </div>
+
+            <!-- Filters -->
+            <div class="w-full bg-white border border-slate-200 shadow-sm px-6 py-4 mb-6">
+                <div class="flex items-center gap-6 flex-wrap">
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-semibold text-gray-500">Date</label>
+                        <div class="flex items-center gap-1">
+                            <input type="text" class="w-[100px] h-8 text-xs border border-gray-200 px-2 rounded" value="2024/1/1" />
+                            <span class="text-gray-400">-</span>
+                            <input type="text" class="w-[100px] h-8 text-xs border border-gray-200 px-2 rounded" value="2025/12/31" />
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-semibold text-gray-500">Brand</label>
+                        <select class="w-[120px] h-8 text-xs border border-gray-200 rounded px-2">
+                            <option>所有</option>
+                            <option>Durex</option>
+                            <option>Dettol</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-semibold text-gray-500">Platform</label>
+                        <select class="w-[120px] h-8 text-xs border border-gray-200 rounded px-2">
+                            <option>所有</option>
+                            <option>京东</option>
+                            <option>天猫</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-semibold text-gray-500">Top N</label>
+                        <input type="number" class="w-[60px] h-8 text-xs border border-gray-200 px-2 rounded" value="10" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div class="bg-white rounded-lg border border-slate-200 p-6">
+                    <div class="text-sm text-slate-500 mb-2">本月客诉数</div>
+                    <div class="text-3xl font-bold kpi-value">36</div>
+                    <div class="text-sm text-green-500 mt-1">↓ 8.2% 较上月</div>
+                </div>
+                <div class="bg-white rounded-lg border border-slate-200 p-6">
+                    <div class="text-sm text-slate-500 mb-2">客诉解决率</div>
+                    <div class="text-3xl font-bold kpi-value">94.4%</div>
+                    <div class="text-sm text-green-500 mt-1">↑ 3.2% 较上月</div>
+                </div>
+                <div class="bg-white rounded-lg border border-slate-200 p-6">
+                    <div class="text-sm text-slate-500 mb-2">平均处理时长</div>
+                    <div class="text-3xl font-bold kpi-value">2.3天</div>
+                    <div class="text-sm text-green-500 mt-1">↓ 0.5天 较上月</div>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="grid grid-cols-2 gap-6">
+                <div class="bg-white border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="h-[40px] bg-white text-slate-800 border-b px-4 flex items-center">
+                        <h4 class="text-xs font-bold uppercase">To C complaint trend</h4>
+                    </div>
+                    <div class="h-[300px] p-4">
+                        <canvas id="complaintToCChart" height="250"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="h-[40px] bg-white text-slate-800 border-b px-4 flex items-center">
+                        <h4 class="text-xs font-bold uppercase">To B complaint trend</h4>
+                    </div>
+                    <div class="h-[300px] p-4">
+                        <canvas id="complaintToBChart" height="250"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="h-[40px] bg-white text-slate-800 border-b px-4 flex items-center justify-between">
+                        <h4 class="text-xs font-bold uppercase">To-C complaint by brand - Dec</h4>
+                        <span class="text-[10px] font-bold text-[#FF007F] bg-pink-50 px-2 py-1 rounded-sm border border-pink-100">202512</span>
+                    </div>
+                    <div class="h-[300px] p-4">
+                        <canvas id="complaintBrandCChart" height="250"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="h-[40px] bg-white text-slate-800 border-b px-4 flex items-center justify-between">
+                        <h4 class="text-xs font-bold uppercase">To-B complaint by brand - Dec</h4>
+                        <span class="text-[10px] font-bold text-[#FF007F] bg-pink-50 px-2 py-1 rounded-sm border border-pink-100">202512</span>
+                    </div>
+                    <div class="h-[300px] p-4">
+                        <canvas id="complaintBrandBChart" height="250"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="h-[40px] bg-white text-slate-800 border-b px-4 flex items-center">
+                        <h4 class="text-xs font-bold uppercase">2025 12 To-C Top 10 issue type</h4>
+                    </div>
+                    <div class="h-[300px] p-4">
+                        <canvas id="complaintIssueCChart" height="250"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="h-[40px] bg-white text-slate-800 border-b px-4 flex items-center">
+                        <h4 class="text-xs font-bold uppercase">2025 12 To-B Top 10 issue type</h4>
+                    </div>
+                    <div class="h-[300px] p-4">
+                        <canvas id="complaintIssueBChart" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 text-[10px] text-gray-400 italic">
+                To C means complaint from consumer<br />
+                To B means complaint from Manon W/H and Customer
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Currency conversion rates
+        const conversionRates = { CNY: 1, USD: 0.14, TWD: 4.5 };
+        const currencySymbols = { CNY: '¥', USD: '$', TWD: 'NT$' };
+
+        // Page Navigation
+        function showPage(pageName) {
+            document.querySelectorAll('.page-content').forEach(page => page.classList.add('hidden'));
+            document.getElementById('page-' + pageName).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-item').forEach(nav => {
+                nav.classList.remove('active');
+                nav.classList.add('text-slate-600');
+            });
+            document.getElementById('nav-' + pageName).classList.add('active');
+            document.getElementById('nav-' + pageName).classList.remove('text-slate-600');
+
+            setTimeout(() => {
+                if (pageName === 'inventory') initInventoryCharts();
+                if (pageName === 'shipment') initShipmentCharts();
+                if (pageName === 'cost') initCostCharts();
+                if (pageName === 'complaint') initComplaintCharts();
+                if (pageName === 'psi') initPsiCharts();
+            }, 100);
+        }
+
+        // PSI Tab Navigation
+        function showPsiTab(tabName) {
+            document.querySelectorAll('[id^="psi-tab-"]').forEach(tab => {
+                tab.classList.remove('active');
+                if (!tab.classList.contains('bg-white')) tab.classList.add('bg-white', 'text-gray-900');
+            });
+            document.getElementById('psi-tab-' + tabName).classList.add('active');
+            document.getElementById('psi-tab-' + tabName).classList.remove('bg-white', 'text-gray-900');
+
+            // Show/hide shipment sub-tabs
+            const shipmentSubs = document.getElementById('psi-shipment-subs');
+            if (tabName === 'shipment') {
+                shipmentSubs.classList.remove('hidden');
+                showShipmentSubTab('overview');
+            } else {
+                shipmentSubs.classList.add('hidden');
+            }
+        }
+
+        // Shipment Sub-Tab Navigation
+        function showShipmentSubTab(subTabName) {
+            document.querySelectorAll('[id^="ship-sub-"]').forEach(tab => {
+                tab.classList.remove('active');
+                if (!tab.classList.contains('bg-white')) tab.classList.add('bg-white', 'text-gray-900');
+            });
+            document.getElementById('ship-sub-' + subTabName).classList.add('active');
+            document.getElementById('ship-sub-' + subTabName).classList.remove('bg-white', 'text-gray-900');
+
+            document.querySelectorAll('.psi-shipment-content').forEach(content => content.classList.add('hidden'));
+            if (subTabName === 'overview') document.getElementById('shipment-content-overview').classList.remove('hidden');
+            if (subTabName === 'detailed') document.getElementById('shipment-content-detailed').classList.remove('hidden');
+
+            if (subTabName === 'detailed') {
+                setTimeout(() => initDetailedCharts(), 100);
+            }
+        }
+
+        // Update Cost Charts based on currency
+        function updateCostCharts() {
+            const currency = document.getElementById('costCurrency').value;
+            const rate = conversionRates[currency];
+            const symbol = currencySymbols[currency];
+
+            // Update total cost
+            const totalCost = Math.round(6880000 * rate);
+            document.getElementById('totalCost').textContent = symbol + totalCost.toLocaleString();
+            document.getElementById('unitCost').textContent = symbol + (12.5 * rate).toFixed(1);
+
+            // Update cost amounts
+            document.querySelectorAll('.cost-amount').forEach(el => {
+                const cnyAmount = parseInt(el.dataset.cny);
+                const converted = Math.round(cnyAmount * rate);
+                el.textContent = symbol + converted.toLocaleString();
+            });
+        }
+
+        // Initialize Charts
+        function initInventoryCharts() {
+            const invCtx = document.getElementById('inventoryChart');
+            if (invCtx && !invCtx.chart) {
+                invCtx.chart = new Chart(invCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['2024-12', '2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12'],
+                        datasets: [{
+                            label: 'Provision',
+                            data: [20000, 22000, 21000, 23000, 24000, 25000, 26000, 30000, 32000, 31000, 33000, 35000, 14516],
+                            backgroundColor: '#6c757d'
+                        }, {
+                            label: 'Net Inventory',
+                            data: [430000, 438000, 479000, 527000, 556000, 535000, 574000, 650000, 718000, 689000, 707000, 755000, 795335],
+                            backgroundColor: '#FF007F'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: { x: { stacked: true }, y: { stacked: true } }
+                    }
+                });
+            }
+
+            const agingCtx = document.getElementById('agingChart');
+            if (agingCtx && !agingCtx.chart) {
+                agingCtx.chart = new Chart(agingCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['>= 1/3 lifeday', '< 1/3 lifeday'],
+                        datasets: [{ data: [27093, 782758], backgroundColor: ['#fbcfe8', '#FF007F'] }]
+                    },
+                    options: { cutout: '60%', plugins: { legend: { display: false } } }
+                });
+            }
+
+            const provCtx = document.getElementById('provisionChart');
+            if (provCtx && !provCtx.chart) {
+                provCtx.chart = new Chart(provCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Slow moving', 'Comm. critical', 'Normal'],
+                        datasets: [{ data: [6008, 56, 8452], backgroundColor: ['#d63384', '#a61e4d', '#f06595'] }]
+                    },
+                    options: { cutout: '60%', plugins: { legend: { display: false } } }
+                });
+            }
+        }
+
+        function initShipmentCharts() {
+            const shipCtx = document.getElementById('shipmentChart');
+            if (shipCtx && !shipCtx.chart) {
+                shipCtx.chart = new Chart(shipCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+                        datasets: [{
+                            label: '发货量',
+                            data: [98000, 102000, 95000, 108000, 112000, 115000, 118000, 120000, 122000, 119000, 123000, 125847],
+                            borderColor: '#FF007F',
+                            backgroundColor: 'rgba(255, 0, 127, 0.1)',
+                            fill: true
+                        }]
+                    },
+                    options: { responsive: true }
+                });
+            }
+        }
+
+        function initCostCharts() {
+            const waterfallCtx = document.getElementById('costWaterfallChart');
+            if (waterfallCtx && !waterfallCtx.chart) {
+                waterfallCtx.chart = new Chart(waterfallCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['基准', '仓储成本', '物流成本', '人力成本', '管理成本', '包装成本', '其他成本', '总成本'],
+                        datasets: [{
+                            label: '成本金额',
+                            data: [0, 2450000, 1850000, 1200000, 650000, 450000, 280000, 6880000],
+                            backgroundColor: ['#cbd5e1', '#ff007f', '#ff3399', '#ff66b2', '#ff99cc', '#ffcce5', '#ffe6f2', '#cbd5e1']
+                        }]
+                    },
+                    options: { responsive: true }
+                });
+            }
+
+            const monthlyCtx = document.getElementById('costMonthlyChart');
+            if (monthlyCtx && !monthlyCtx.chart) {
+                monthlyCtx.chart = new Chart(monthlyCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['4月', '5月', '6月', '7月', '8月', '9月', '10月'],
+                        datasets: [{
+                            label: '上月',
+                            data: [6450000, 6200000, 6350000, 6150000, 6420000, 6580000, 6720000],
+                            backgroundColor: '#cbd5e1'
+                        }, {
+                            label: '本月',
+                            data: [6200000, 6350000, 6150000, 6420000, 6580000, 6720000, 6880000],
+                            backgroundColor: '#ff007f'
+                        }]
+                    },
+                    options: { responsive: true }
+                });
+            }
+        }
+
+        function initComplaintCharts() {
+            // To C Complaint Trend
+            const toCCtx = document.getElementById('complaintToCChart');
+            if (toCCtx && !toCCtx.chart) {
+                const months = Array.from({length: 24}, (_, i) => {
+                    const m = (i % 12) + 1;
+                    return `${Math.floor(i/12) + 2024}/${m.toString().padStart(2,'0')}`;
+                });
+                toCCtx.chart = new Chart(toCCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: months,
+                        datasets: [{
+                            label: 'eDS',
+                            data: months.map(() => 5000 + Math.random() * 15000),
+                            backgroundColor: '#333'
+                        }, {
+                            label: '非eDS',
+                            data: months.map(() => 2000 + Math.random() * 5000),
+                            backgroundColor: '#666'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: { x: { stacked: true }, y: { stacked: true } }
+                    }
+                });
+            }
+
+            // To B Complaint Trend
+            const toBCtx = document.getElementById('complaintToBChart');
+            if (toBCtx && !toBCtx.chart) {
+                const months = Array.from({length: 24}, (_, i) => {
+                    const m = (i % 12) + 1;
+                    return `${Math.floor(i/12) + 2024}/${m.toString().padStart(2,'0')}`;
+                });
+                toBCtx.chart = new Chart(toBCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: months,
+                        datasets: [{
+                            label: '仓库',
+                            data: months.map(() => 10000 + Math.random() * 20000),
+                            backgroundColor: '#333'
+                        }, {
+                            label: '客户',
+                            data: months.map(() => 5000 + Math.random() * 10000),
+                            backgroundColor: '#666'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: { x: { stacked: true }, y: { stacked: true } }
+                    }
+                });
+            }
+
+            // Brand Charts
+            const brandCData = {
+                labels: ['durex', 'Dettol', 'VMS', 'finish', 'Veet', 'Intima', 'Vanish', 'Aerogard'],
+                datasets: [{
+                    label: 'To C',
+                    data: [4939, 8341, 500, 126, 6042, 4797, 2620, 0],
+                    backgroundColor: ['#0070c0', '#00b050', '#c00000', '#002060', '#ff007f', '#ff66b2', '#ff99cc', '#666']
+                }]
+            };
+
+            const brandCCtx = document.getElementById('complaintBrandCChart');
+            if (brandCCtx && !brandCCtx.chart) {
+                brandCCtx.chart = new Chart(brandCCtx, { type: 'bar', data: brandCData, options: { responsive: true } });
+            }
+
+            const brandBData = {
+                labels: ['durex', 'Dettol', 'VMS', 'finish', 'Veet', 'Intima', 'Vanish', 'Aerogard'],
+                datasets: [{
+                    label: 'To B',
+                    data: [131, 59246, 25587, 799, 1683, 4761, 4387, 1],
+                    backgroundColor: ['#0070c0', '#00b050', '#c00000', '#002060', '#ff007f', '#ff66b2', '#ff99cc', '#666']
+                }]
+            };
+
+            const brandBCtx = document.getElementById('complaintBrandBChart');
+            if (brandBCtx && !brandBCtx.chart) {
+                brandBCtx.chart = new Chart(brandBCtx, { type: 'bar', data: brandBData, options: { responsive: true } });
+            }
+
+            // Issue Type Charts
+            const issueLabels = ['漏-破损漏液', '蔽-使用过敏', '满-气味不好', '满-效果不好', '蔽-效果不好', '蔽-泵头问题', '蔽-使用过敏', '蔽-AE', '蔽-瓶盖问题', '社-个人喜好'];
+
+            const issueCCtx = document.getElementById('complaintIssueCChart');
+            if (issueCCtx && !issueCCtx.chart) {
+                issueCCtx.chart = new Chart(issueCCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: issueLabels,
+                        datasets: [{
+                            label: '投诉数量',
+                            data: [2422, 2179, 1685, 1597, 3307, 1447, 983, 2089, 954, 745],
+                            backgroundColor: issueLabels.map((_, i) => i % 2 === 0 ? '#00b050' : '#ff007f')
+                        }]
+                    },
+                    options: { responsive: true }
+                });
+            }
+
+            const issueBCtx = document.getElementById('complaintIssueBChart');
+            if (issueBCtx && !issueBCtx.chart) {
+                issueBCtx.chart = new Chart(issueBCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: issueLabels,
+                        datasets: [{
+                            label: '投诉数量',
+                            data: [1800, 1500, 1200, 1100, 2500, 1200, 800, 1800, 800, 600],
+                            backgroundColor: issueLabels.map((_, i) => i % 2 === 0 ? '#c00000' : '#00b050')
+                        }]
+                    },
+                    options: { responsive: true }
+                });
+            }
+        }
+
+        function initPsiCharts() {
+            // Channel Chart
+            const channelCtx = document.getElementById('psiChannelChart');
+            if (channelCtx && !channelCtx.chart) {
+                channelCtx.chart = new Chart(channelCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Online', 'Offline'],
+                        datasets: [{
+                            data: [22.5, 15.7],
+                            backgroundColor: ['#ff007f', '#ff99cc']
+                        }]
+                    },
+                    options: {
+                        cutout: '50%',
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+
+            // Trend Chart
+            const trendCtx = document.getElementById('psiTrendChart');
+            if (trendCtx && !trendCtx.chart) {
+                trendCtx.chart = new Chart(trendCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['25/1', '25/2', '25/3', '25/4', '25/5', '25/6', '25/7', '25/8'],
+                        datasets: [{
+                            label: 'Actual',
+                            data: [125000, 132000, 128000, 145000, 138000, 152000, 148000, 165000],
+                            borderColor: '#ff007f',
+                            backgroundColor: 'rgba(255, 0, 127, 0.1)',
+                            fill: true
+                        }, {
+                            label: 'Target',
+                            data: [130000, 120000, 135000, 122000, 140000, 148000, 150000, 140000],
+                            borderColor: '#94a3b8',
+                            borderDash: [5, 5]
+                        }]
+                    },
+                    options: { responsive: true }
+                });
+            }
+        }
+
+        function initDetailedCharts() {
+            const monthlyCtx = document.getElementById('detailedMonthlyChart');
+            if (monthlyCtx && !monthlyCtx.chart) {
+                monthlyCtx.chart = new Chart(monthlyCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+                        datasets: [{
+                            label: '预算',
+                            data: [9132, 826, 852, 852, 798, 578, 888, 829, 855, 994, 981, 760],
+                            backgroundColor: '#d1d5db'
+                        }, {
+                            label: '实际',
+                            data: [10081, 729, 364, 798, 578, 888, 829, 855, 994, 981, 760, 597],
+                            backgroundColor: '#ff007f'
+                        }]
+                    },
+                    options: { responsive: true }
+                });
+            }
+
+            const brandCtx = document.getElementById('detailedBrandChart');
+            if (brandCtx && !brandCtx.chart) {
+                brandCtx.chart = new Chart(brandCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['杜蕾斯', '滴露', '国际品牌', '国际滴露', '细菌盾', '薇婷'],
+                        datasets: [{
+                            label: 'YTD',
+                            data: [5629, 7665, 478, 416, 424, 428],
+                            backgroundColor: '#ff007f'
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true
+                    }
+                });
+            }
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Home page is shown by default
+        });
+    </script>
+</body>
+</html>

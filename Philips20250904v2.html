@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Philips Cost Management Dashboard</title>
+<style>
+  :root {
+    --primary: #4376D8;
+    --primary-light: #DAE9F8;
+    --bg-gray: #F4F5F6;
+    --bg-white: #ffffff;
+    --text-dark: #1A1A2E;
+    --text-mid: #555;
+    --text-light: #888;
+    --border: #e0e3e8;
+    --red: #d93025;
+    --green: #1e8a3e;
+    --orange: #f5a623;
+    --header-h: 64px;
+    --nav-h: 48px;
+    --toolbar-h: 88px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg-gray); color: var(--text-dark); font-size: 13px; }
+
+  /* ─── Top Header ─── */
+  .top-header {
+    position: sticky; top: 0; z-index: 100;
+    background: #fff; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; height: var(--header-h);
+    padding: 0 20px; gap: 16px;
+  }
+  .logo-area { display: flex; align-items: center; gap: 10px; }
+  .logo-box { width: 120px; height: 36px; background: #005699; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 18px; letter-spacing: 2px; }
+  .header-title { font-size: 15px; font-weight: 600; color: var(--text-dark); }
+  .header-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .currency-btn { padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); cursor: pointer; font-size: 12px; background: #fff; color: var(--text-mid); transition: all .2s; }
+  .currency-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .currency-btn:hover:not(.active) { border-color: var(--primary); color: var(--primary); }
+  .data-updated { font-size: 11px; color: var(--text-light); margin-left: 12px; }
+
+  /* ─── Page Tabs ─── */
+  .page-tabs {
+    background: #fff; border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-end; height: var(--nav-h); padding: 0 20px; gap: 0;
+  }
+  .page-tab {
+    padding: 0 20px; height: 100%; display: flex; align-items: center; cursor: pointer;
+    font-size: 13px; font-weight: 500; color: var(--text-mid); border-bottom: 3px solid transparent;
+    transition: all .2s; white-space: nowrap; user-select: none;
+  }
+  .page-tab:hover { color: var(--primary); }
+  .page-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+  /* ─── Filter Bar ─── */
+  .filter-bar {
+    background: var(--bg-gray); padding: 10px 20px;
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end;
+    border-bottom: 1px solid var(--border);
+  }
+  .filter-item { display: flex; flex-direction: column; gap: 3px; }
+  .filter-label { font-size: 10px; color: var(--text-light); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+  .filter-select {
+    padding: 5px 10px; border: 1px solid var(--border); border-radius: 6px; background: #fff;
+    font-size: 12px; color: var(--text-dark); cursor: pointer; outline: none; min-width: 90px;
+    appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23888' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 8px center; padding-right: 24px;
+  }
+  .filter-select:focus { border-color: var(--primary); }
+
+  /* ─── Sub-menu bar ─── */
+  .submenu-bar {
+    background: #fff; padding: 6px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .sub-btn {
+    padding: 4px 14px; border-radius: 4px; border: 1px solid var(--border);
+    cursor: pointer; font-size: 12px; background: #fff; color: var(--text-mid);
+    transition: all .2s; white-space: nowrap;
+  }
+  .sub-btn:hover { background: var(--bg-gray); }
+  .sub-btn.active { background: var(--primary-light); color: var(--primary); border-color: var(--primary); font-weight: 600; }
+  .year-badge { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+  .year-label { font-size: 11px; color: var(--text-light); }
+  .year-value { font-weight: 700; color: var(--primary); font-size: 14px; }
+
+  /* ─── Main Content ─── */
+  .main-content { padding: 16px 20px; }
+  .page-section { display: none; }
+  .page-section.active { display: block; }
+
+  /* ─── Data Table ─── */
+  .table-wrapper { background: #fff; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+  .table-wrapper table { width: 100%; border-collapse: collapse; }
+  .table-wrapper thead th {
+    background: #2c3e7a; color: #fff; padding: 9px 12px; text-align: right;
+    font-size: 12px; font-weight: 600; white-space: nowrap; position: sticky; top: 0; z-index: 10;
+  }
+  .table-wrapper thead th:first-child { text-align: left; min-width: 200px; background: #1a2555; }
+  .table-wrapper tbody tr:hover { background: #f0f5ff; }
+  .table-wrapper tbody td { padding: 7px 12px; text-align: right; border-bottom: 1px solid #f0f2f5; font-size: 12px; white-space: nowrap; }
+  .table-wrapper tbody td:first-child { text-align: left; font-weight: 500; }
+  tr.row-total td { background: var(--primary-light) !important; font-weight: 700; color: #1a2555; }
+  tr.row-section { cursor: pointer; user-select: none; }
+  tr.row-section td { background: #E6E6E6 !important; font-weight: 600; color: #333; }
+  tr.row-section:hover td { background: #d0d0d0 !important; }
+  tr.row-section .expand-icon { display: inline-block; width: 16px; margin-right: 4px; transition: transform 0.2s; }
+  tr.row-section.collapsed .expand-icon { transform: rotate(-90deg); }
+  tr.row-detail { transition: opacity 0.2s; }
+  tr.row-detail.hidden { display: none; }
+  tr.row-detail td:first-child { padding-left: 32px; color: var(--text-mid); font-weight: 400; }
+  tr.row-highlight td { background: #F4F5F6 !important; }
+  .val-pos { color: var(--green); }
+  .val-neg { color: var(--red); }
+  .val-neu { color: var(--text-mid); }
+  .icon-asc::after { content: ' ▲'; font-size: 9px; opacity: .7; }
+  .icon-desc::after { content: ' ▼'; font-size: 9px; opacity: .7; }
+
+  /* ─── KPI Cards ─── */
+  .kpi-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .kpi-card { background: #fff; border-radius: 8px; padding: 14px 16px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+  .kpi-label { font-size: 11px; color: var(--text-light); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+  .kpi-value { font-size: 22px; font-weight: 700; color: var(--text-dark); }
+  .kpi-delta { font-size: 12px; margin-top: 4px; }
+  .kpi-bar { height: 4px; border-radius: 2px; background: var(--bg-gray); margin-top: 8px; }
+  .kpi-bar-fill { height: 100%; border-radius: 2px; background: var(--primary); }
+
+  /* ─── Traffic Light ─── */
+  .tl-section-title {
+    padding: 8px 16px; background: #f0f2f5; border-radius: 6px 6px 0 0;
+    font-size: 12px; font-weight: 700; color: #2c3e7a; letter-spacing: .5px;
+    border: 1px solid var(--border); border-bottom: none; display: flex; align-items: center; gap: 8px;
+  }
+  .tl-section-title .tl-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .tl-table-wrap { margin-bottom: 20px; }
+  .tl-table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--border); border-top: none; border-radius: 0 0 6px 6px; overflow: hidden; }
+  .tl-table thead th { background: #2c3e7a; color: #fff; padding: 8px 12px; font-size: 11px; font-weight: 600; text-align: right; white-space: nowrap; }
+  .tl-table thead th:first-child { text-align: left; min-width: 160px; }
+  .tl-table tbody tr:hover { background: #f8f9ff; }
+  .tl-table tbody td { padding: 7px 12px; border-bottom: 1px solid #f0f2f5; font-size: 12px; text-align: right; }
+  .tl-table tbody td:first-child { text-align: left; font-weight: 500; }
+  .tl-status { display: inline-flex; align-items: center; gap: 5px; }
+  .tl-light { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+  .tl-green { background: #27ae60; box-shadow: 0 0 4px rgba(39,174,96,.5); }
+  .tl-yellow { background: #f39c12; box-shadow: 0 0 4px rgba(243,156,18,.5); }
+  .tl-red { background: #e74c3c; box-shadow: 0 0 4px rgba(231,76,60,.5); }
+
+  /* ─── Legend / Footer ─── */
+  .legend { display: flex; flex-wrap: wrap; gap: 16px; padding: 10px 20px; background: #fff; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-light); }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-color { width: 14px; height: 10px; border-radius: 2px; }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 768px) {
+    .filter-bar { gap: 6px; }
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    .page-tab { padding: 0 10px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== TOP HEADER ===== -->
+<div class="top-header">
+  <div class="logo-area">
+    <div class="logo-box">PHILIPS</div>
+    <span class="header-title">Cost Management Report</span>
+  </div>
+  <div class="header-right">
+    <button class="currency-btn active" onclick="setCurrency(this,'AOP')">EUR @ AOP</button>
+    <button class="currency-btn" onclick="setCurrency(this,'Reported')">EUR @ Reported</button>
+    <button class="currency-btn" onclick="setCurrency(this,'Local')">Local Currency</button>
+    <span class="data-updated">Data updated as of Jun, 2025</span>
+  </div>
+</div>
+
+<!-- ===== PAGE TABS ===== -->
+<div class="page-tabs">
+  <div class="page-tab" onclick="switchPage('bf',this)">Overview BF</div>
+  <div class="page-tab active" onclick="switchPage('ef',this)">Overview EF</div>
+  <div class="page-tab" onclick="switchPage('tl',this)">Traffic Light</div>
+  <div class="page-tab" onclick="switchPage('export',this)">BF Data Export</div>
+</div>
+
+<!-- ===== FILTER BAR ===== -->
+<div class="filter-bar">
+  <div class="filter-item">
+    <span class="filter-label">Year</span>
+    <select class="filter-select" id="filter-year" onchange="applyFilters()">
+      <option>2025</option><option>2024</option><option>2023</option>
+    </select>
+  </div>
+  <div class="filter-item">
+    <span class="filter-label">Month</span>
+    <select class="filter-select" id="filter-month" onchange="applyFilters()">
+      <option>All</option><option>Jan</option><option>Feb</option><option>Mar</option>
+      <option>Apr</option><option>May</option><option selected>Jun</option>
+      <option>Jul</option><option>Aug</option><option>Sep</option><option>Oct</option><option>Nov</option><option>Dec</option>
+    </select>
+  </div>
+  <div class="filter-item">
+    <span class="filter-label">Period</span>
+    <select class="filter-select" id="filter-period" onchange="applyFilters()">
+      <option>YTD</option><option>MTD</option><option>Full Year</option>
+    </select>
+  </div>
+  <div class="filter-item">
+    <span class="filter-label">FC Version</span>
+    <select class="filter-select" id="filter-fc" onchange="applyFilters()">
+      <option>FC 2+10</option><option>FC 4+8</option><option>FC 8+4</option><option>FC 10+2</option>
+    </select>
+  </div>
+  <div class="filter-item">
+    <span class="filter-label">Site</span>
+    <select class="filter-select" id="filter-site" onchange="applyFilters()">
+      <option>All</option><option>Site A</option><option>Site B</option><option>Site C</option>
+    </select>
+  </div>
+  <div class="filter-item">
+    <span class="filter-label">Function</span>
+    <select class="filter-select" id="filter-func" onchange="applyFilters()">
+      <option>All</option><option>Function 1</option><option>Function 2</option><option>Function 3</option><option>Function 4</option>
+    </select>
+  </div>
+  <div class="filter-item">
+    <span class="filter-label">Business (BU)</span>
+    <select class="filter-select" id="filter-bu" onchange="applyFilters()">
+      <option>All</option><option>BU 1</option><option>BU 2</option><option>BU 3</option><option>BU 4</option>
+    </select>
+  </div>
+  <div class="filter-item">
+    <span class="filter-label">Unit</span>
+    <select class="filter-select" id="filter-unit" onchange="applyFilters()">
+      <option>K</option><option>M</option><option>原始值</option>
+    </select>
+  </div>
+  <div class="filter-item">
+    <span class="filter-label">Category</span>
+    <select class="filter-select" id="filter-cat" onchange="applyFilters()">
+      <option>All</option><option>Direct</option><option>Indirect</option><option>Overhead</option>
+    </select>
+  </div>
+</div>
+
+<!-- ===== SUBMENU BAR ===== -->
+<div class="submenu-bar">
+  <button class="sub-btn active" onclick="setSubMenu(this,'ISC')">Integrated Supply Chain</button>
+  <button class="sub-btn" onclick="setSubMenu(this,'PL')">Industry P&L</button>
+  <div class="year-badge">
+    <span class="year-label">CY:</span><span class="year-value" id="cy-val">2025</span>
+    <span class="year-label" style="margin-left:10px">LY:</span><span class="year-value" id="ly-val">2024</span>
+  </div>
+</div>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="main-content">
+
+  <!-- ======== BF PAGE ======== -->
+  <div id="page-bf" class="page-section">
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-label">Act CY XTD</div>
+        <div class="kpi-value" id="kpi-bf-act">—</div>
+        <div class="kpi-delta val-neg" id="kpi-bf-aop-delta">vs AOP —</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" style="width:72%"></div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">AOP CY XTD</div>
+        <div class="kpi-value" id="kpi-bf-aop">—</div>
+        <div class="kpi-delta val-neu">Budget Reference</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" style="width:100%;background:#ddd"></div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">FC CY XTD</div>
+        <div class="kpi-value" id="kpi-bf-fc">—</div>
+        <div class="kpi-delta val-neg" id="kpi-bf-fc-delta">vs Act —</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" style="width:78%;background:#f5a623"></div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Act LY XTD</div>
+        <div class="kpi-value" id="kpi-bf-ly">—</div>
+        <div class="kpi-delta val-neu">Prior Year Baseline</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" style="width:65%;background:#aaa"></div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Δ% vs AOP</div>
+        <div class="kpi-value val-neg" id="kpi-bf-aop-pct">—</div>
+        <div class="kpi-delta val-neu">Favorable when negative</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Δ% vs FC</div>
+        <div class="kpi-value val-pos" id="kpi-bf-fc-pct">—</div>
+        <div class="kpi-delta val-neu">Forecast accuracy</div>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <table id="bf-table">
+        <thead>
+          <tr>
+            <th>Account / Row Headers</th>
+            <th>Act LY XTD</th>
+            <th>Act CY XTD</th>
+            <th>AOP CY XTD</th>
+            <th>FC CY XTD</th>
+            <th>Δ Act LY YTD</th>
+            <th>Δ% Act LY XTD</th>
+            <th>Δ AOP CY XTD</th>
+            <th>Δ% AOP CY XTD</th>
+            <th>Δ FC XTD</th>
+            <th>Δ% FC XTD</th>
+          </tr>
+        </thead>
+        <tbody id="bf-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ======== EF PAGE ======== -->
+  <div id="page-ef" class="page-section active">
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-label">Act CY XTD EF</div>
+        <div class="kpi-value" id="kpi-ef-act">—</div>
+        <div class="kpi-delta val-neg" id="kpi-ef-aop-delta">vs AOP —</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" style="width:68%"></div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">AOP CY XTD EF</div>
+        <div class="kpi-value" id="kpi-ef-aop">—</div>
+        <div class="kpi-delta val-neu">Budget Reference</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" style="width:100%;background:#ddd"></div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">FC CY XTD EF</div>
+        <div class="kpi-value" id="kpi-ef-fc">—</div>
+        <div class="kpi-delta val-pos" id="kpi-ef-fc-delta">vs Act —</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" style="width:75%;background:#f5a623"></div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Act LY XTD EF</div>
+        <div class="kpi-value" id="kpi-ef-ly">—</div>
+        <div class="kpi-delta val-neu">Prior Year Baseline</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" style="width:62%;background:#aaa"></div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Δ% vs AOP</div>
+        <div class="kpi-value val-neg" id="kpi-ef-aop-pct">—</div>
+        <div class="kpi-delta val-neu">Favorable when negative</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Park (EF)</div>
+        <div class="kpi-value val-neu" id="kpi-ef-park">—</div>
+        <div class="kpi-delta val-neu">Parked Amount</div>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <table id="ef-table">
+        <thead>
+          <tr>
+            <th>Account / Row Headers</th>
+            <th>Act LY XTD EF</th>
+            <th>Act CY XTD EF</th>
+            <th>AOP CY XTD EF</th>
+            <th>FC CY XTD EF</th>
+            <th>Δ Act LY YTD EF</th>
+            <th>Δ% Act LY YTD EF</th>
+            <th>Δ AOP CY XTD EF</th>
+            <th>Δ% AOP CY XTD EF</th>
+            <th>Δ FC XTD EF</th>
+            <th>Δ% FC XTD EF</th>
+            <th>Park</th>
+          </tr>
+        </thead>
+        <tbody id="ef-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ======== TRAFFIC LIGHT PAGE ======== -->
+  <div id="page-tl" class="page-section">
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-label">On Track (Green)</div>
+        <div class="kpi-value" id="tl-kpi-green" style="color:var(--green)">—</div>
+        <div class="kpi-delta val-neu">Persons within target</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">At Risk (Yellow)</div>
+        <div class="kpi-value" id="tl-kpi-yellow" style="color:var(--orange)">—</div>
+        <div class="kpi-delta val-neu">Δ% within 10%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Over Budget (Red)</div>
+        <div class="kpi-value" id="tl-kpi-red" style="color:var(--red)">—</div>
+        <div class="kpi-delta val-neu">Δ% exceeds 10%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Total Ref CY</div>
+        <div class="kpi-value" id="tl-kpi-ref">—</div>
+        <div class="kpi-delta val-neu">Full Year Reference</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Total Act CY YTD</div>
+        <div class="kpi-value" id="tl-kpi-act">—</div>
+        <div class="kpi-delta val-neg" id="tl-kpi-delta">vs Ref —</div>
+      </div>
+    </div>
+
+    <!-- Variable Costs Section -->
+    <div class="tl-table-wrap">
+      <div class="tl-section-title">
+        <span class="tl-dot" style="background:#e74c3c"></span>
+        Variable Costs — by Person Responsible
+      </div>
+      <table class="tl-table">
+        <thead>
+          <tr>
+            <th>Person Responsible</th>
+            <th>Status</th>
+            <th>Ref CY</th>
+            <th>Act CY</th>
+            <th>Δ Ref CY</th>
+            <th>Δ% Ref CY</th>
+            <th>Ref YTD</th>
+            <th>Act CY YTD</th>
+            <th>Δ Ref YTD</th>
+            <th>Δ% Ref YTD</th>
+          </tr>
+        </thead>
+        <tbody id="tl-var-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Fixed Costs Section -->
+    <div class="tl-table-wrap">
+      <div class="tl-section-title">
+        <span class="tl-dot" style="background:#3498db"></span>
+        Fixed Costs — by Person Responsible
+      </div>
+      <table class="tl-table">
+        <thead>
+          <tr>
+            <th>Person Responsible</th>
+            <th>Status</th>
+            <th>Ref CY</th>
+            <th>Act CY</th>
+            <th>Δ Ref CY</th>
+            <th>Δ% Ref CY</th>
+            <th>Ref YTD</th>
+            <th>Act CY YTD</th>
+            <th>Δ Ref YTD</th>
+            <th>Δ% Ref YTD</th>
+          </tr>
+        </thead>
+        <tbody id="tl-fix-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- EF Section -->
+    <div class="tl-table-wrap">
+      <div class="tl-section-title">
+        <span class="tl-dot" style="background:#9b59b6"></span>
+        EF Analysis — by Person Responsible
+      </div>
+      <table class="tl-table">
+        <thead>
+          <tr>
+            <th>Person Responsible</th>
+            <th>Status</th>
+            <th>Ref CY EF</th>
+            <th>Act CY</th>
+            <th>Δ Ref CY EF</th>
+            <th>Δ% Ref CY EF</th>
+            <th>Ref CY YTD EF</th>
+            <th>Act CY YTD</th>
+            <th>Δ Ref CY YTD EF</th>
+            <th>Δ% Ref CY YTD EF</th>
+          </tr>
+        </thead>
+        <tbody id="tl-ef-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ======== EXPORT PAGE ======== -->
+  <div id="page-export" class="page-section">
+    <div style="padding:40px;text-align:center;color:var(--text-light);">
+      <div style="font-size:48px;margin-bottom:16px;">📊</div>
+      <div style="font-size:18px;font-weight:600;margin-bottom:8px;">BF Data Export</div>
+      <div style="font-size:13px;">此页面为数据导出用途，原 PBI 报表中为原始数据表格。<br>请使用下方按钮导出当前筛选后的数据。</div>
+      <br>
+      <button onclick="exportCSV()" style="padding:10px 24px;background:var(--primary);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px;font-weight:600;">导出为 CSV</button>
+    </div>
+  </div>
+
+</div><!-- end main-content -->
+
+<!-- ===== LEGEND ===== -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-color" style="background:var(--primary-light)"></div>Total / Grand Total</div>
+  <div class="legend-item"><div class="legend-color" style="background:#E6E6E6"></div>Sub-total Section</div>
+  <div class="legend-item"><div class="legend-color" style="background:#fff;border:1px solid #ddd"></div>Detail Row</div>
+  <div class="legend-item"><span style="color:var(--green);font-weight:700">▲ Green</span> = Favorable (actual &lt; budget)</div>
+  <div class="legend-item"><span style="color:var(--red);font-weight:700">▼ Red</span> = Unfavorable (actual &gt; budget)</div>
+  <div style="margin-left:auto;font-size:11px;color:var(--text-light)">Philips Cost Management · v2 · 2025-09-04 · CC - AI 助理</div>
+</div>
+
+<script>
+// ========== MOCK DATA ==========
+// BF Account rows (representative structure from Axis_BF Account)
+const BF_ROWS = [
+  {type:'section', label:'Prime Costs'},
+  {type:'detail', label:'  Direct Material Cost'},
+  {type:'detail', label:'  Direct Labor Cost'},
+  {type:'detail', label:'  Variable Manufacturing Overhead'},
+  {type:'detail', label:'  Distribution Cost'},
+  {type:'detail', label:'  Supplies'},
+  {type:'subtotal', label:'Total Prime Costs'},
+  {type:'section', label:'Conversion Costs'},
+  {type:'detail', label:'  Non-cash Charge'},
+  {type:'detail', label:'  Repair & Maintenance'},
+  {type:'detail', label:'  Energy Cost'},
+  {type:'detail', label:'  Technology Cost'},
+  {type:'detail', label:'  Occupancy Cost'},
+  {type:'detail', label:'  Overhead Labor'},
+  {type:'detail', label:'  T&E'},
+  {type:'detail', label:'  Human Capital Investment'},
+  {type:'subtotal', label:'Total Conversion Costs'},
+  {type:'total', label:'Total Costs (BF)'},
+];
+
+// EF Account rows (from Axis_EF Account)
+const EF_ROWS = [
+  {type:'section', label:'Prime Costs'},
+  {type:'detail', label:'  Direct Material Cost EF'},
+  {type:'detail', label:'  Direct Labor Cost EF'},
+  {type:'detail', label:'  Variable Manufacturing Overhead EF'},
+  {type:'subtotal', label:'Total Prime Costs EF'},
+  {type:'section', label:'Conversion Costs'},
+  {type:'detail', label:'  Non-cash Charge EF'},
+  {type:'detail', label:'  Repair & Maintenance EF'},
+  {type:'detail', label:'  Energy Cost EF'},
+  {type:'detail', label:'  Technology Cost EF'},
+  {type:'detail', label:'  Occupancy Cost EF'},
+  {type:'detail', label:'  Overhead Labor EF'},
+  {type:'subtotal', label:'Total Conversion Costs EF'},
+  {type:'section', label:'Period Costs'},
+  {type:'detail', label:'  Internal Allocation'},
+  {type:'detail', label:'  Cross-charge EF'},
+  {type:'subtotal', label:'Total Period Costs'},
+  {type:'total', label:'Net P&L (EF)'},
+];
+
+// Traffic Light persons
+const TL_PERSONS = [
+  'Kevin Zhang','Vivian Chen','Jason Liu','Cindy Wang','Leo Li',
+  'Helen Xu','Tony Wu','Eric Zhao','Ruby Tang','Alex Sun'
+];
+
+// ========== GENERATE MOCK VALUES ==========
+function rnd(base, variance) {
+  return Math.round((base + (Math.random() - 0.5) * variance) * 10) / 10;
+}
+function fmt(v, unit) {
+  if (v === null || v === undefined) return '—';
+  unit = unit || getUnit();
+  if (unit === 'M') return (v / 1000).toFixed(2);
+  return v.toFixed(1);
+}
+function fmtPct(v) {
+  if (v === null || v === undefined) return '—';
+  return (v >= 0 ? '+' : '') + (v * 100).toFixed(1) + '%';
+}
+function getUnit() { return document.getElementById('filter-unit')?.value || 'K'; }
+
+function makeRow(base) {
+  const actCY = rnd(base, base * 0.3);
+  const actLY = rnd(base * 0.95, base * 0.2);
+  const aopCY = rnd(base * 1.05, base * 0.15);
+  const fcCY  = rnd(base * 1.02, base * 0.1);
+  return {
+    actLY, actCY, aopCY, fcCY,
+    dActLY: actCY - actLY,
+    dPctActLY: (actCY - actLY) / Math.abs(actLY),
+    dAOP: actCY - aopCY,
+    dPctAOP: (actCY - aopCY) / Math.abs(aopCY),
+    dFC: actCY - fcCY,
+    dPctFC: (actCY - fcCY) / Math.abs(fcCY),
+  };
+}
+
+function makeEFRow(base) {
+  const r = makeRow(base);
+  r.park = rnd(base * 0.02, base * 0.01);
+  return r;
+}
+
+function makeTLRow(base) {
+  const refCY = rnd(base, base * 0.15);
+  const actCY = rnd(base * 1.08, base * 0.2);
+  const refYTD = refCY * 0.5;
+  const actYTD = actCY * 0.48;
+  const dPctYTD = (actYTD - refYTD) / Math.abs(refYTD);
+  let status = 'green';
+  if (Math.abs(dPctYTD) > 0.1) status = 'red';
+  else if (Math.abs(dPctYTD) > 0.05) status = 'yellow';
+  return { refCY, actCY, dRefCY: actCY - refCY, dPctRefCY: (actCY - refCY) / Math.abs(refCY),
+           refYTD, actYTD, dRefYTD: actYTD - refYTD, dPctRefYTD: dPctYTD, status };
+}
+
+// ========== RENDER TABLES ==========
+function cellVal(v, cls) {
+  return `<td class="${cls || ''}">${fmt(v)}</td>`;
+}
+function cellPct(v) {
+  const cls = v > 0.001 ? 'val-neg' : v < -0.001 ? 'val-pos' : 'val-neu';
+  return `<td class="${cls}">${fmtPct(v)}</td>`;
+}
+function cellDelta(v) {
+  const cls = v > 0.1 ? 'val-neg' : v < -0.1 ? 'val-pos' : 'val-neu';
+  return `<td class="${cls}">${fmt(v)}</td>`;
+}
+
+function renderBFTable() {
+  const tbody = document.getElementById('bf-tbody');
+  let html = '';
+  let currentSection = null;
+  let sectionIndex = 0;
+  BF_ROWS.forEach((row, index) => {
+    const base = row.type === 'total' ? 2800 : row.type === 'subtotal' ? 1400 : rnd(180, 120);
+    const d = makeRow(base);
+    let cls = '';
+    if (row.type === 'total') cls = 'row-total';
+    else if (row.type === 'subtotal') cls = 'row-section';
+    else if (row.type === 'section') cls = 'row-section';
+    else cls = 'row-detail';
+
+    if (row.type === 'section') {
+      sectionIndex++;
+      currentSection = 'bf-section-' + sectionIndex;
+      html += `<tr class="${cls}" data-section="${currentSection}" onclick="toggleSection('${currentSection}', this)">
+        <td colspan="11" style="font-weight:700;color:#2c3e7a;padding-left:12px">
+          <span class="expand-icon">▼</span>${row.label}
+        </td>
+      </tr>`;
+    } else if (row.type === 'subtotal' || row.type === 'total') {
+      html += `<tr class="${cls}" data-section="${currentSection}">
+        <td>${row.label}</td>
+        ${cellVal(d.actLY)} ${cellVal(d.actCY)} ${cellVal(d.aopCY)} ${cellVal(d.fcCY)}
+        ${cellDelta(d.dActLY)} ${cellPct(d.dPctActLY)}
+        ${cellDelta(d.dAOP)} ${cellPct(d.dPctAOP)}
+        ${cellDelta(d.dFC)} ${cellPct(d.dPctFC)}
+      </tr>`;
+    } else {
+      html += `<tr class="${cls}" data-section="${currentSection}">
+        <td>${row.label}</td>
+        ${cellVal(d.actLY)} ${cellVal(d.actCY)} ${cellVal(d.aopCY)} ${cellVal(d.fcCY)}
+        ${cellDelta(d.dActLY)} ${cellPct(d.dPctActLY)}
+        ${cellDelta(d.dAOP)} ${cellPct(d.dPctAOP)}
+        ${cellDelta(d.dFC)} ${cellPct(d.dPctFC)}
+      </tr>`;
+    }
+  });
+  tbody.innerHTML = html;
+  // Update KPIs
+  const totalRow = makeRow(2800);
+  const u = getUnit() === 'M' ? 'M' : 'K';
+  document.getElementById('kpi-bf-act').textContent = fmt(totalRow.actCY) + ' ' + u;
+  document.getElementById('kpi-bf-aop').textContent = fmt(totalRow.aopCY) + ' ' + u;
+  document.getElementById('kpi-bf-fc').textContent  = fmt(totalRow.fcCY)  + ' ' + u;
+  document.getElementById('kpi-bf-ly').textContent  = fmt(totalRow.actLY) + ' ' + u;
+  document.getElementById('kpi-bf-aop-delta').textContent = 'vs AOP ' + fmtPct(totalRow.dPctAOP);
+  document.getElementById('kpi-bf-fc-delta').textContent  = 'vs FC '  + fmtPct(totalRow.dPctFC);
+  document.getElementById('kpi-bf-aop-pct').textContent   = fmtPct(totalRow.dPctAOP);
+  document.getElementById('kpi-bf-fc-pct').textContent    = fmtPct(totalRow.dPctFC);
+}
+
+function renderEFTable() {
+  const tbody = document.getElementById('ef-tbody');
+  let html = '';
+  let currentSection = null;
+  let sectionIndex = 0;
+  EF_ROWS.forEach((row, index) => {
+    const base = row.type === 'total' ? 3200 : row.type === 'subtotal' ? 1600 : rnd(200, 150);
+    const d = makeEFRow(base);
+    let cls = '';
+    if (row.type === 'total') cls = 'row-total';
+    else if (row.type === 'subtotal') cls = 'row-section';
+    else if (row.type === 'section') cls = 'row-section';
+    else cls = 'row-detail';
+
+    if (row.type === 'section') {
+      sectionIndex++;
+      currentSection = 'ef-section-' + sectionIndex;
+      html += `<tr class="${cls}" data-section="${currentSection}" onclick="toggleSection('${currentSection}', this)">
+        <td colspan="12" style="font-weight:700;color:#2c3e7a;padding-left:12px">
+          <span class="expand-icon">▼</span>${row.label}
+        </td>
+      </tr>`;
+    } else if (row.type === 'subtotal' || row.type === 'total') {
+      html += `<tr class="${cls}" data-section="${currentSection}">
+        <td>${row.label}</td>
+        ${cellVal(d.actLY)} ${cellVal(d.actCY)} ${cellVal(d.aopCY)} ${cellVal(d.fcCY)}
+        ${cellDelta(d.dActLY)} ${cellPct(d.dPctActLY)}
+        ${cellDelta(d.dAOP)} ${cellPct(d.dPctAOP)}
+        ${cellDelta(d.dFC)} ${cellPct(d.dPctFC)}
+        ${cellVal(d.park)}
+      </tr>`;
+    } else {
+      html += `<tr class="${cls}" data-section="${currentSection}">
+        <td>${row.label}</td>
+        ${cellVal(d.actLY)} ${cellVal(d.actCY)} ${cellVal(d.aopCY)} ${cellVal(d.fcCY)}
+        ${cellDelta(d.dActLY)} ${cellPct(d.dPctActLY)}
+        ${cellDelta(d.dAOP)} ${cellPct(d.dPctAOP)}
+        ${cellDelta(d.dFC)} ${cellPct(d.dPctFC)}
+        ${cellVal(d.park)}
+      </tr>`;
+    }
+  });
+  tbody.innerHTML = html;
+  const u = getUnit() === 'M' ? 'M' : 'K';
+  const total = makeEFRow(3200);
+  document.getElementById('kpi-ef-act').textContent = fmt(total.actCY) + ' ' + u;
+  document.getElementById('kpi-ef-aop').textContent = fmt(total.aopCY) + ' ' + u;
+  document.getElementById('kpi-ef-fc').textContent  = fmt(total.fcCY)  + ' ' + u;
+  document.getElementById('kpi-ef-ly').textContent  = fmt(total.actLY) + ' ' + u;
+  document.getElementById('kpi-ef-park').textContent= fmt(total.park)  + ' ' + u;
+  document.getElementById('kpi-ef-aop-delta').textContent = 'vs AOP ' + fmtPct(total.dPctAOP);
+  document.getElementById('kpi-ef-aop-pct').textContent   = fmtPct(total.dPctAOP);
+}
+
+function renderTLTables() {
+  function genTable(tbodyId, efMode) {
+    const tbody = document.getElementById(tbodyId);
+    let html = ''; let g=0,y=0,r=0; let totRef=0,totAct=0;
+    TL_PERSONS.forEach(p => {
+      const d = makeTLRow(rnd(300, 200));
+      totRef += d.refCY; totAct += d.actYTD;
+      if(d.status==='green') g++;
+      else if(d.status==='yellow') y++;
+      else r++;
+      const statusHtml = `<td><span class="tl-status"><span class="tl-light tl-${d.status}"></span>${d.status==='green'?'On Track':d.status==='yellow'?'At Risk':'Over Budget'}</span></td>`;
+      html += `<tr>
+        <td>${p}</td>
+        ${statusHtml}
+        <td>${fmt(d.refCY)}</td><td>${fmt(d.actCY)}</td>
+        ${cellDelta(d.dRefCY)} ${cellPct(d.dPctRefCY)}
+        <td>${fmt(d.refYTD)}</td><td>${fmt(d.actYTD)}</td>
+        ${cellDelta(d.dRefYTD)} ${cellPct(d.dPctRefYTD)}
+      </tr>`;
+    });
+    tbody.innerHTML = html;
+    return {g,y,r,totRef,totAct};
+  }
+  const s1 = genTable('tl-var-tbody', false);
+  genTable('tl-fix-tbody', false);
+  genTable('tl-ef-tbody', true);
+  const u = getUnit() === 'M' ? 'M' : 'K';
+  document.getElementById('tl-kpi-green').textContent = s1.g;
+  document.getElementById('tl-kpi-yellow').textContent = s1.y;
+  document.getElementById('tl-kpi-red').textContent = s1.r;
+  document.getElementById('tl-kpi-ref').textContent = fmt(s1.totRef) + ' ' + u;
+  document.getElementById('tl-kpi-act').textContent = fmt(s1.totAct) + ' ' + u;
+  const dp = (s1.totAct - s1.totRef) / Math.abs(s1.totRef);
+  document.getElementById('tl-kpi-delta').textContent = 'vs Ref ' + fmtPct(dp);
+  document.getElementById('tl-kpi-delta').className = 'kpi-delta ' + (dp > 0 ? 'val-neg' : 'val-pos');
+}
+
+function toggleSection(sectionId, headerRow) {
+  const isCollapsed = headerRow.classList.contains('collapsed');
+  const rows = document.querySelectorAll(`tr[data-section="${sectionId}"]`);
+
+  rows.forEach(row => {
+    if (row !== headerRow) {
+      if (isCollapsed) {
+        row.classList.remove('hidden');
+      } else {
+        row.classList.add('hidden');
+      }
+    }
+  });
+
+  headerRow.classList.toggle('collapsed');
+}
+
+// ========== PAGE SWITCHING ==========
+function switchPage(page, el) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  el.classList.add('active');
+  if (page === 'bf') renderBFTable();
+  if (page === 'ef') renderEFTable();
+  if (page === 'tl') renderTLTables();
+}
+
+function setCurrency(el, mode) {
+  document.querySelectorAll('.currency-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  applyFilters();
+}
+
+function setSubMenu(el, mode) {
+  document.querySelectorAll('.sub-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  applyFilters();
+}
+
+function applyFilters() {
+  const year = document.getElementById('filter-year').value;
+  document.getElementById('cy-val').textContent = year;
+  document.getElementById('ly-val').textContent = String(parseInt(year) - 1);
+  renderBFTable(); renderEFTable(); renderTLTables();
+}
+
+function exportCSV() {
+  alert('CSV 导出功能在实际部署时需连接数据源，当前为演示模式。');
+}
+
+// ========== INIT ==========
+window.addEventListener('DOMContentLoaded', () => {
+  renderBFTable();
+  renderEFTable();
+  renderTLTables();
+});
+</script>
+</body>
+</html>
