@@ -1066,7 +1066,85 @@
         </footer>
     </div>
 
-    <script>
+    // 动态获取当前文件的基础路径，解决本地和GitHub Pages路径兼容问题
+    const getBasePath = () => {
+        const scriptName = 'resume.html';
+        const scripts = document.getElementsByTagName('script');
+        let basePath = '';
+
+        // 尝试从脚本标签获取当前路径
+        for (let i = 0; i < scripts.length; i++) {
+            const src = scripts[i].src || '';
+            if (src.includes(scriptName)) {
+                const lastSlash = src.lastIndexOf('/');
+                if (lastSlash > 0) {
+                    basePath = src.substring(0, lastSlash + 1);
+                    break;
+                }
+            }
+        }
+
+        // 如果未找到，回退到基于当前页面路径计算
+        if (!basePath) {
+            const pathParts = window.location.pathname.split('/');
+            let filePath = pathParts.pop() || 'index.html';
+            // 移除查询参数
+            filePath = filePath.split('?')[0];
+
+            // 找到 resume 相关文件的位置
+            const resumeIndex = filePath.toLowerCase().indexOf('resume');
+            if (resumeIndex > 0) {
+                basePath = pathParts.join('/') + '/';
+            } else {
+                // 假设案例文件在当前目录
+                basePath = pathParts.slice(0, pathParts.length - 1).join('/') + '/';
+                if (basePath === '/') basePath = '';
+            }
+        }
+
+        return basePath;
+    };
+
+    // 案例文件映射表
+    const CASE_FILES = {
+        'Chanel': 'Chanel_Report.html',
+        'Reckitt': 'RB_Report.html',
+        'SaintGobain': 'Saint-Gobain_Report.html',
+        'Philips': 'Philips_Report.html'
+    };
+
+    // 初始化案例路径
+    document.addEventListener('DOMContentLoaded', () => {
+        const basePath = getBasePath();
+
+        // 为所有 iframe 动态设置 src
+        document.querySelectorAll('.iframe-preview iframe').forEach(iframe => {
+            const originalSrc = iframe.getAttribute('src');
+            // 只替换相对路径部分
+            for (const key in CASE_FILES) {
+                if (originalSrc && originalSrc.includes(CASE_FILES[key])) {
+                    const newSrc = basePath + CASE_FILES[key];
+                    iframe.setAttribute('src', newSrc);
+                    break;
+                }
+            }
+        });
+
+        // 为所有链接动态设置 href
+        document.querySelectorAll('.project-card-face').forEach(link => {
+            const originalHref = link.getAttribute('href');
+            for (const key in CASE_FILES) {
+                if (originalHref && originalHref.includes(CASE_FILES[key])) {
+                    const newHref = basePath + CASE_FILES[key];
+                    link.setAttribute('href', newHref);
+                    break;
+                }
+            }
+        });
+
+        // 保存 basePath 供后续使用（如需要）
+        window.CASE_BASE_PATH = basePath;
+    });
         const toggleBtn = document.getElementById('theme-toggle');
         const body = document.body;
 
