@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BTQ Sales Ops Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sidebar-bg: #000000;
+            --main-bg: #f3f4f6;
+            --card-bg: #ffffff;
+            --accent-orange: #ff6b35;
+            --text-main: #333333;
+            --text-muted: #666666;
+            --border-color: #e5e7eb;
+            --sidebar-width: 200px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', -apple-system, sans-serif;
+            background: var(--main-bg);
+            color: var(--text-main);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* Top Utility Bar */
+        .top-utility {
+            height: 48px;
+            background: #2e3436;
+            color: #d3d7cf;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            font-size: 13px;
+        }
+
+        .top-utility-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .top-utility-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .utility-icon {
+            cursor: pointer;
+            opacity: 0.8;
+        }
+
+        .utility-icon:hover {
+            opacity: 1;
+        }
+
+        /* Main Container */
+        .container {
+            display: flex;
+            height: calc(100vh - 48px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--sidebar-bg);
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            padding-top: 20px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 20px;
+            margin-bottom: 30px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: bold;
+            font-size: 10px;
+        }
+
+        .logo-text {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .nav-group {
+            margin-bottom: 20px;
+        }
+
+        .nav-group-title {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            padding: 0 20px;
+            margin-bottom: 10px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-group-title::before {
+            content: '';
+            width: 3px;
+            height: 12px;
+            background: var(--accent-orange);
+            display: block;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 20px;
+            font-size: 12px;
+            color: #ccc;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            font-size: 14px;
+            color: #ccc;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 4px solid transparent;
+            margin-bottom: 5px;
+        }
+
+        .nav-item:hover {
+            color: #fff;
+        }
+
+        .nav-item.active {
+            color: #fff;
+            font-weight: 700;
+            border-left-color: #ff6b35;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            padding: 20px;
+            font-size: 11px;
+            color: #666;
+            border-top: 1px solid #222;
+        }
+
+        /* Content Area */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* Top Filter Area */
+        .filter-area {
+            background: #ffffff;
+            padding: 10px 20px;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .filter-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .period-toggle {
+            display: flex;
+            background: #e5e7eb;
+            border-radius: 4px;
+            padding: 2px;
+            margin-right: 15px;
+        }
+
+        .period-btn {
+            border: none;
+            background: transparent;
+            padding: 4px 0; /* Padding-X removed to allow flex to control width */
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 2px;
+            color: #666;
+            flex: 1; /* Match widths exactly */
+            text-align: center;
+            min-width: 80px; /* Ensure enough space for 'Self-Define' */
+        }
+
+        .period-btn.active {
+            background: #000;
+            color: #fff;
+        }
+
+        .filter-select-group {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .filter-label {
+            font-size: 10px;
+            color: #888;
+            font-weight: 700;
+        }
+
+        .filter-select {
+            border: 1px solid #ddd;
+            padding: 4px 8px;
+            font-size: 11px;
+            border-radius: 4px;
+            min-width: 120px;
+            background: #fff;
+            height: 28px;
+        }
+
+        /* Demo Alert Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-card {
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .modal-text {
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .modal-btn {
+            background: #000;
+            color: #fff;
+            border: none;
+            padding: 8px 25px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* Page Content */
+        .page-body {
+            padding: 20px;
+        }
+
+        .watermark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="150" viewBox="0 0 200 150"><text x="10" y="50" font-family="Arial" font-size="12" fill="rgba(0,0,0,0.03)" transform="rotate(-30 50 100)">panda_qu_ext 2025-08-11</text></svg>');
+            z-index: 1;
+        }
+
+        /* Cards and Widgets */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            padding: 15px;
+            border: 1px solid #eee;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title::before {
+            content: '';
+            width: 3px;
+            height: 14px;
+            background: var(--accent-orange);
+            display: block;
+        }
+
+        /* Sales Overview Widget */
+        .sales-overview {
+            display: flex;
+            gap: 30px;
+        }
+
+        .main-kpi {
+            flex: 1;
+            text-align: center;
+            border-right: 1px solid #eee;
+            padding-right: 20px;
+        }
+
+        .kpi-title {
+            font-size: 11px;
+            color: #888;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .kpi-val {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .kpi-trend {
+            font-size: 10px;
+            color: #888;
+        }
+
+        .sub-kpi-grid {
+            flex: 2;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .sub-kpi {
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .sub-kpi.highlight {
+            border: 2px solid #ff4d4d;
+        }
+
+        .chart-container {
+            height: 200px;
+            position: relative;
+        }
+
+        /* Tables */
+        .table-widget {
+            overflow: hidden;
+        }
+
+        .table-title {
+            background: #e5e7eb;
+            font-size: 12px;
+            padding: 5px 10px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .styled-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+
+        .styled-table th {
+            background: #f3f4f6;
+            padding: 8px;
+            text-align: left;
+            border-bottom: 2px solid #ddd;
+            font-weight: 700;
+        }
+
+        .styled-table td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            text-align: center; /* Center all values */
+        }
+
+        .styled-table td:first-child {
+            text-align: center; /* Dimension values also centered */
+        }
+
+        .styled-table tr:hover {
+            background: #f9fafb;
+        }
+
+        .num-col {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .trend-up { color: #10b981; }
+        .trend-down { color: #ef4444; }
+
+        .btn-black-gold {
+            background: #2e3436;
+            color: #fff;
+            border: none;
+            padding: 4px 10px;
+            font-size: 10px;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+
+        #summary, #btq-rank, #performance, #best-seller, #fja {
+            display: none;
+        }
+
+        #summary.active, #btq-rank.active, #performance.active, #best-seller.active, #fja.active {
+            display: block;
+        }
+
+        /* Performance Page Specific Styles */
+        .perf-filter-expanded {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 12px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #eee;
+        }
+
+        .perf-kpi-section {
+            margin-bottom: 25px;
+        }
+
+        .perf-section-header {
+            font-size: 11px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #444;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 5px;
+        }
+
+        .perf-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+        }
+
+        .perf-kpi-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            padding: 12px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .perf-kpi-card .label {
+            font-size: 10px;
+            color: #888;
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .perf-kpi-card .value {
+            font-size: 16px;
+            font-weight: 700;
+            color: #000;
+            display: block;
+        }
+
+        .perf-kpi-card .sub-label {
+            font-size: 9px;
+            color: #999;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .perf-kpi-card .growth {
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        .perf-chart-row {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .bubble-chart-container {
+            height: 300px;
+        }
+
+        /* Summary Overhaul Styles */
+        .summary-dashboard {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .summary-kpi-block {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .summary-kpi-card {
+            background: #fff;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #eee;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .summary-kpi-card .main-val {
+            font-size: 20px;
+            font-weight: 700;
+            margin-top: 5px;
+        }
+
+        .summary-kpi-card .meta {
+            font-size: 10px;
+            color: #888;
+            margin-top: 5px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+        }
+
+        .summary-table-container {
+            overflow-x: auto;
+            background: #fff;
+            border-radius: 4px;
+            border: 1px solid #eee;
+        }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+        }
+
+        .summary-table th {
+            background: #f3f4f6;
+            padding: 6px 4px;
+            border: 1px solid #ddd;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .summary-table td {
+            padding: 6px 4px;
+            border: 1px solid #eee;
+            text-align: center; /* Values also centered */
+        }
+
+        .summary-table .group-header {
+            background: #eee;
+            font-weight: 700;
+            text-align: left;
+        }
+
+        .summary-table .col-label {
+            text-align: center;
+            font-weight: 600;
+            background: #fafafa;
+        }
+
+        /* Sales Trend Overlay Styles */
+        .chart-kpi-summary {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-top: 10px;
+        }
+
+        .chart-kpi-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #000;
+            margin-bottom: 5px;
+        }
+
+        .chart-kpi-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: #000;
+            letter-spacing: -1px;
+            margin-bottom: 10px;
+        }
+
+        .chart-kpi-sub {
+            font-size: 11px;
+            color: #666;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .chart-kpi-sub .growth.negative {
+            color: #ef4444;
+        }
+
+        /* Core KPI Table Sub-headers (Synced with Summary style) */
+        .table-sub-header {
+            background: #f3f4f6 !important;
+            padding: 6px 4px;
+            border: 1px solid #ddd !important;
+            font-weight: 700;
+            text-align: center !important;
+            font-size: 10px;
+            color: #333;
+        }
+
+        .dim-header {
+            background: #f3f4f6 !important;
+            padding: 6px 4px;
+            border: 1px solid #ddd !important;
+            font-weight: 700;
+            text-align: center !important; /* Switched to centered as requested */
+            font-size: 10px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-utility">
+        <div class="top-utility-left">
+            <span>BTQ Sales Ops Tracker</span>
+            <span style="opacity: 0.5">|</span>
+            <span>数据更新日期 25/8/11</span>
+            <span class="utility-icon">▼</span>
+        </div>
+        <div class="top-utility-right">
+            <span class="utility-icon">↻</span>
+            <span class="utility-icon">★</span>
+            <span class="utility-icon">◗</span>
+            <span class="utility-icon">📤</span>
+            <span class="utility-icon">⋯</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon">SMART</div>
+                <span class="logo-text">SMART</span>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-item active" onclick="showPage('summary')">Summary</div>
+                <div class="nav-item" onclick="showPage('btq-rank')">BTQ Rank</div>
+                <div class="nav-item" onclick="showPage('performance')">Performance</div>
+                <div class="nav-item" onclick="showDemoPopup()">Best Seller</div>
+                <div class="nav-item" onclick="showDemoPopup()">FJA Performance</div>
+            </div>
+
+            <div class="sidebar-bottom">
+                <div style="color: var(--accent-orange); margin-bottom: 5px; cursor: pointer;">Go To Metrics Definition</div>
+                <div style="color: var(--accent-orange); margin-bottom: 10px; cursor: pointer;">Go To CRM Report</div>
+                <div>Refresh Date: 2025/08/11</div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+                  <div class="filter-area">
+                <div class="filter-row">
+                    <div class="filter-select-group">
+                        <span class="filter-label">Time Period:</span>
+                        <div class="period-toggle">
+                            <button class="period-btn active">YTD</button>
+                            <button class="period-btn">Month</button>
+                            <button class="period-btn">Self-Define</button>
+                        </div>
+                    </div>
+                    <div style="flex:1"></div>
+                    <div class="filter-select-group">
+                        <span class="filter-label">Store Type</span>
+                        <select class="filter-select"><option>所有</option></select>
+                    </div>
+                    <div class="filter-select-group">
+                        <span class="filter-label">BTQ</span>
+                        <select class="filter-select"><option>所有</option></select>
+                    </div>
+                    <div class="filter-select-group">
+                        <span class="filter-label">City</span>
+                        <select class="filter-select"><option>所有</option></select>
+                    </div>
+                    <div class="filter-select-group">
+                        <span class="filter-label">Order Type</span>
+                        <select class="filter-select"><option>所有</option></select>
+                    </div>
+                    <div class="filter-select-group">
+                        <span class="filter-label">Sales Unit (with Tax)</span>
+                        <select class="filter-select"><option>K RMB</option></select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-overlay" id="demoModal">
+                <div class="modal-card">
+                    <div class="modal-text">
+                        这个页面不在本次demo的展示范围内，<br>
+                        如需了解更多，可联系作者本人
+                    </div>
+                    <button class="modal-btn" onclick="hideDemoPopup()">知道了</button>
+                </div>
+            </div>
+
+            <div class="page-body">
+                <div id="summary" class="active">
+                    <div class="summary-dashboard">
+                        <div class="card">
+                            <div class="card-title">Sales Trend</div>
+                            <div class="chart-kpi-summary">
+                                <div class="chart-kpi-label">Total Sales</div>
+                                <div class="chart-kpi-value">2,864,250.0</div>
+                                <div class="chart-kpi-sub">
+                                    <span>Last Year <span style="font-weight:600; color:#333; margin-left:8px;">2,578,100.0</span></span>
+                                    <span>Growth <span class="growth positive" style="font-weight:600; margin-left:8px;">+11.1%</span></span>
+                                </div>
+                            </div>
+                            <div class="chart-container" style="height: 200px;">
+                                <canvas id="summaryTrendChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="summary-kpi-block">
+                            <div class="summary-kpi-card">
+                                <div class="kpi-title">Core</div>
+                                <div class="main-val">2,492,300.0</div>
+                                <div class="meta">
+                                    <span>Last Year</span><span>2,243,000.0</span>
+                                    <span>Growth</span><span class="trend-up">+11.1%</span>
+                                    <span>Share</span><span>87.0%</span>
+                                </div>
+                            </div>
+                            <div class="summary-kpi-card">
+                                <div class="kpi-title">HEB</div>
+                                <div class="main-val">371,950.0</div>
+                                <div class="meta">
+                                    <span>Last Year</span><span>335,100.0</span>
+                                    <span>Growth</span><span class="trend-up">+11.0%</span>
+                                    <span>Share</span><span>13.0%</span>
+                                </div>
+                            </div>
+                            <div class="card" style="grid-column: span 2; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700;">
+                                Total Sales: 2,864,250.0 <span class="trend-up" style="margin-left: 10px;">+11.1%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="summary-table-container">
+                        <table class="summary-table">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2" class="dim-header">Category</th>
+                                    <th rowspan="2" class="dim-header">BTQ Type</th>
+                                    <th colspan="4">D - 1</th>
+                                    <th colspan="5">MTD</th>
+                                    <th colspan="5">YTD</th>
+                                </tr>
+                                <tr>
+                                    <th>CY</th><th>LY</th><th>Growth</th><th>Share</th>
+                                    <th>CY</th><th>LY</th><th>Growth</th><th>Achieve</th><th>Share</th>
+                                    <th>CY</th><th>LY</th><th>Growth</th><th>Run Rate</th><th>Share</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="group-header"><td colspan="16">Total</td></tr>
+                                <tr>
+                                    <td rowspan="3" class="col-label">Total</td>
+                                    <td style="text-align: left;">Region A</td>
+                                    <td>12,450.00</td><td>11,210.0</td><td class="trend-up">+11.1%</td><td>100.0%</td>
+                                    <td>42,500.0</td><td>38,200.0</td><td class="trend-up">+11.3%</td><td>-</td><td>100.0%</td>
+                                    <td>2,864,250.0</td><td>2,578,100.0</td><td class="trend-up">+11.1%</td><td>85.4%</td><td>100.0%</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: left;">Branch X</td>
+                                    <td>3,640.0</td><td>3,800.0</td><td class="trend-down">-4.2%</td><td>29.2%</td>
+                                    <td>12,250.0</td><td>13,000.0</td><td class="trend-down">-5.8%</td><td>-</td><td>28.8%</td>
+                                    <td>825,660.0</td><td>876,500.0</td><td class="trend-down">-5.8%</td><td>67.4%</td><td>28.8%</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: left;">Center Y</td>
+                                    <td>8,810.0</td><td>7,410.0</td><td class="trend-up">+18.9%</td><td>70.8%</td>
+                                    <td>30,250.0</td><td>25,200.0</td><td class="trend-up">+20.0%</td><td>-</td><td>71.2%</td>
+                                    <td>2,038,590.0</td><td>1,701,600.0</td><td class="trend-up">+19.8%</td><td>67.4%</td><td>71.2%</td>
+                                </tr>
+                                <tr class="group-header"><td colspan="16">Core</td></tr>
+                                <tr>
+                                    <td rowspan="3" class="col-label">Core</td>
+                                    <td style="text-align: left;">Region A</td>
+                                    <td>10,120.0</td><td>9,110.0</td><td class="trend-up">+11.1%</td><td>81.3%</td>
+                                    <td>34,500.0</td><td>31,050.0</td><td class="trend-up">+11.1%</td><td>81.2%</td><td>81.2%</td>
+                                    <td>2,492,300.0</td><td>2,243,000.0</td><td class="trend-up">+11.1%</td><td>72.2%</td><td>87.0%</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: left;">Branch X</td>
+                                    <td>3,210.0</td><td>3,100.0</td><td class="trend-up">+3.5%</td><td>25.8%</td>
+                                    <td>12,420.0</td><td>10,580.0</td><td class="trend-up">+17.4%</td><td>101.4%</td><td>29.2%</td>
+                                    <td>743,530.0</td><td>762,600.0</td><td class="trend-down">-2.5%</td><td>90.1%</td><td>29.8%</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: left;">Center Y</td>
+                                    <td>6,910.0</td><td>6,010.0</td><td class="trend-up">+15.0%</td><td>55.5%</td>
+                                    <td>22,080.0</td><td>20,470.0</td><td class="trend-up">+7.9%</td><td>72.9%</td><td>52.0%</td>
+                                    <td>1,748,770.0</td><td>1,480,400.0</td><td class="trend-up">+18.1%</td><td>85.8%</td><td>70.2%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- BTQ Rank Page -->
+                <div id="btq-rank">
+                    <div class="card">
+                        <div class="card-title">Anonymized BTQ Performance Ranking</div>
+                        <p style="font-size: 11px; color: #888; margin-bottom: 15px;">Refresh Date: 2025/09/04</p>
+                        <div style="max-height: 60vh; overflow-y: auto;">
+                            <table class="styled-table">
+                                <thead>
+                                    <tr>
+                                        <th class="dim-header">Store Code</th>
+                                        <th class="dim-header">Store Name</th>
+                                        <th class="dim-header">Segment</th>
+                                        <th class="table-sub-header">Total Stock</th>
+                                        <th class="table-sub-header">CY Sales</th>
+                                        <th class="table-sub-header">Growth %</th>
+                                        <th class="table-sub-header">Stock Turn</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>ST-001</td><td>Location Alpha</td><td>Region North</td><td class="num-col">124,500</td><td class="num-col">64,200</td><td class="num-col trend-up">+14.2%</td><td class="num-col">4.2</td></tr>
+                                    <tr><td>ST-002</td><td>Location Beta</td><td>Region East</td><td class="num-col">102,000</td><td class="num-col">58,500</td><td class="num-col trend-up">+11.1%</td><td class="num-col">3.1</td></tr>
+                                    <tr><td>ST-003</td><td>Location Gamma</td><td>Region South</td><td class="num-col">98,500</td><td class="num-col">44,500</td><td class="num-col trend-up">+16.5%</td><td class="num-col">4.5</td></tr>
+                                    <tr><td>ST-004</td><td>Location Delta</td><td>Region North</td><td class="num-col">84,500</td><td class="num-col">42,300</td><td class="num-col trend-up">+10.8%</td><td class="num-col">3.2</td></tr>
+                                    <tr><td>ST-005</td><td>Location Epsilon</td><td>Region West</td><td class="num-col">72,300</td><td class="num-col">38,500</td><td class="num-col trend-up">+10.5%</td><td class="num-col">2.9</td></tr>
+                                    <tr><td>ST-006</td><td>Location Zeta</td><td>Region South</td><td class="num-col">68,500</td><td class="num-col">36,400</td><td class="num-col trend-up">+13.3%</td><td class="num-col">4.3</td></tr>
+                                    <tr><td>ST-007</td><td>Location Eta</td><td>Region East</td><td class="num-col">114,500</td><td class="num-col">87,300</td><td class="num-col trend-up">+18.2%</td><td class="num-col">4.8</td></tr>
+                                    <tr><td>ST-008</td><td>Location Theta</td><td>Region North</td><td class="num-col">92,300</td><td class="num-col">54,500</td><td class="num-col trend-down">-2.1%</td><td class="num-col">3.0</td></tr>
+                                    <tr><td>ST-009</td><td>Location Iota</td><td>Region West</td><td class="num-col">88,500</td><td class="num-col">51,400</td><td class="num-col trend-up">+12.0%</td><td class="num-col">3.4</td></tr>
+                                    <tr><td>ST-010</td><td>Location Kappa</td><td>Region East</td><td class="num-col">74,500</td><td class="num-col">45,300</td><td class="num-col trend-up">+11.0%</td><td class="num-col">2.8</td></tr>
+                                    <tr><td>ST-011</td><td>Location Lambda</td><td>Region North</td><td class="num-col">62,300</td><td class="num-col">41,500</td><td class="num-col trend-up">+10.5%</td><td class="num-col">3.1</td></tr>
+                                    <tr><td>ST-012</td><td>Location Mu</td><td>Region South</td><td class="num-col">58,500</td><td class="num-col">39,400</td><td class="num-col trend-up">+14.5%</td><td class="num-col">3.2</td></tr>
+                                    <tr><td>ST-013</td><td>Location Nu</td><td>Region North</td><td class="num-col">104,500</td><td class="num-col">79,300</td><td class="num-col trend-up">+12.2%</td><td class="num-col">4.4</td></tr>
+                                    <tr><td>ST-014</td><td>Location Xi</td><td>Region West</td><td class="num-col">92,300</td><td class="num-col">63,500</td><td class="num-col trend-down">-4.1%</td><td class="num-col">2.9</td></tr>
+                                    <tr><td>ST-015</td><td>Location Omicron</td><td>Region South</td><td class="num-col">88,500</td><td class="num-col">59,400</td><td class="num-col trend-up">+15.5%</td><td class="num-col">3.5</td></tr>
+                                    <tr><td>ST-016</td><td>Location Pi</td><td>Region East</td><td class="num-col">74,500</td><td class="num-col">47,300</td><td class="num-col trend-up">+11.0%</td><td class="num-col">3.3</td></tr>
+                                    <tr><td>ST-017</td><td>Location Rho</td><td>Region West</td><td class="num-col">62,300</td><td class="num-col">38,500</td><td class="num-col trend-down">-1.5%</td><td class="num-col">2.8</td></tr>
+                                    <tr><td>ST-018</td><td>Location Sigma</td><td>Region South</td><td class="num-col">58,500</td><td class="num-col">37,400</td><td class="num-col trend-up">+12.3%</td><td class="num-col">3.1</td></tr>
+                                    <tr><td>ST-019</td><td>Location Tau</td><td>Region East</td><td class="num-col">114,500</td><td class="num-col">82,300</td><td class="num-col trend-up">+14.2%</td><td class="num-col">4.6</td></tr>
+                                    <tr><td>ST-020</td><td>Location Upsilon</td><td>Region North</td><td class="num-col">92,300</td><td class="num-col">51,500</td><td class="num-col trend-down">-1.0%</td><td class="num-col">3.0</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Page -->
+                <div id="performance">
+                    <!-- Second row of filters removed as requested -->
+
+
+                    <div class="perf-kpi-section">
+                        <div class="perf-section-header">Customize</div>
+                        <div class="perf-kpi-grid">
+                            <div class="perf-kpi-card"><span class="label">No. of Staff</span><span class="value">4,680</span><span class="sub-label">Expert: <span class="growth positive">34.2%</span></span></div>
+                            <div class="perf-kpi-card"><span class="label">Monthly Avg Sales*</span><span class="value">612,400</span><span class="sub-label">GR%: <span class="growth positive">12.5%</span></span></div>
+                            <div class="perf-kpi-card"><span class="label">Daily Trans*</span><span class="value">12.5</span><span class="sub-label">GR%: <span class="growth positive">2.4%</span></span></div>
+                            <div class="perf-kpi-card"><span class="label">SPT</span><span class="value">8,420</span><span class="sub-label">GR%: <span class="growth positive">15.1%</span></span></div>
+                            <div class="perf-kpi-card"><span class="label">Non VIP Trans %</span><span class="value">8.4%</span><span class="sub-label">Single Piece: 42.5%</span></div>
+                            <div class="perf-kpi-card"><span class="label">FRAGRANCE</span><span class="value">412,000,000</span><span class="sub-label">GR%: <span class="growth positive">+10.2%</span></span></div>
+                            <div class="perf-kpi-card"><span class="label">SKINCARE</span><span class="value">445,000,000</span><span class="sub-label">GR%: <span class="growth positive">+32.4%</span></span></div>
+                        </div>
+                    </div>
+
+                    <div class="perf-kpi-section">
+                        <div class="perf-section-header">National</div>
+                        <div class="perf-kpi-grid">
+                            <div class="perf-kpi-card"><span class="label">No. of Staff</span><span class="value">4,680</span><span class="sub-label">Expert: 34.2%</span></div>
+                            <div class="perf-kpi-card"><span class="label">Monthly Avg Sales*</span><span class="value">612,400</span><span class="sub-label">GR%: 12.5%</span></div>
+                            <div class="perf-kpi-card"><span class="label">Daily Trans*</span><span class="value">12.5</span><span class="sub-label">GR%: 2.4%</span></div>
+                            <div class="perf-kpi-card"><span class="label">SPT</span><span class="value">8,420</span><span class="sub-label">GR%: 15.1%</span></div>
+                            <div class="perf-kpi-card"><span class="label">Non VIP Trans %</span><span class="value">8.4%</span><span class="sub-label">Single Piece: 42.5%</span></div>
+                            <div class="perf-kpi-card"><span class="label">FRAGRANCE</span><span class="value">412,000,000</span><span class="sub-label">GR%: 10.2%</span></div>
+                            <div class="perf-kpi-card"><span class="label">SKINCARE</span><span class="value">445,000,000</span><span class="sub-label">GR%: 32.4%</span></div>
+                        </div>
+                    </div>
+
+                    <div class="perf-chart-row">
+                        <div class="card">
+                            <div class="card-title">Monthly Avg Sales & GR%</div>
+                            <div class="bubble-chart-container"><canvas id="bubbleChart1"></canvas></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">Category MIX Sales</div>
+                            <div class="bubble-chart-container"><canvas id="mixSalesChart"></canvas></div>
+                        </div>
+                    </div>
+
+                    <div class="card table-widget">
+                        <table class="styled-table" style="font-size: 10px;">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2" class="dim-header">Core KPI</th>
+                                    <th colspan="4" class="table-sub-header">MTD</th>
+                                    <th colspan="4" class="table-sub-header">YTD</th>
+                                </tr>
+                                <tr>
+                                    <th class="table-sub-header">CY</th>
+                                    <th class="table-sub-header">LY</th>
+                                    <th class="table-sub-header">Growth</th>
+                                    <th class="table-sub-header">Achieve</th>
+                                    <th class="table-sub-header">CY</th>
+                                    <th class="table-sub-header">LY</th>
+                                    <th class="table-sub-header">Growth</th>
+                                    <th class="table-sub-header">Run Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Sales</td><td>164,250.0</td><td>147,800.0</td><td class="trend-up">+11.1%</td><td>85.0%</td><td>2,864,250.0</td><td>2,578,100.0</td><td class="trend-up">+11.1%</td><td>85.0%</td></tr>
+                                <tr><td>Core Penetration</td><td>12.4%</td><td>11.2%</td><td class="trend-up">+10.7%</td><td>-</td><td>11.8%</td><td>10.6%</td><td class="trend-up">+11.3%</td><td>-</td></tr>
+                                <tr><td>Penetration TTL</td><td>14.2%</td><td>12.8%</td><td class="trend-up">+10.9%</td><td>-</td><td>13.5%</td><td>12.1%</td><td class="trend-up">+11.5%</td><td>-</td></tr>
+                                <tr><td># of Trans</td><td>3,240</td><td>2,910</td><td class="trend-up">+11.3%</td><td>-</td><td>32,450</td><td>29,200</td><td class="trend-up">+11.1%</td><td>-</td></tr>
+                                <tr><td>Qty</td><td>4,120</td><td>3,710</td><td class="trend-up">+11.1%</td><td>-</td><td>42,560</td><td>38,300</td><td class="trend-up">+11.1%</td><td>-</td></tr>
+                                <tr><td>SPT</td><td>124.5</td><td>112.1</td><td class="trend-up">+11.1%</td><td>-</td><td>118.4</td><td>106.5</td><td class="trend-up">+11.2%</td><td>-</td></tr>
+                                <tr><td>Traffic</td><td>58,400</td><td>52,100</td><td class="trend-up">+12.1%</td><td>-</td><td>425,600</td><td>382,000</td><td class="trend-up">+11.4%</td><td>-</td></tr>
+                                <tr><td>CR%</td><td>11.2%</td><td>10.1%</td><td class="trend-up">+10.9%</td><td>-</td><td>10.8%</td><td>9.7%</td><td class="trend-up">+11.3%</td><td>-</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+    <script>
+        function showPage(pageId) {
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            document.querySelectorAll('.page-body > div').forEach(page => page.classList.remove('active'));
+            
+            document.getElementById(pageId).classList.add('active');
+            if (event) event.currentTarget.classList.add('active');
+        }
+
+        function showDemoPopup() {
+            document.getElementById('demoModal').style.display = 'flex';
+        }
+
+        function hideDemoPopup() {
+            document.getElementById('demoModal').style.display = 'none';
+        }
+
+        // Charts
+        window.onload = function() {
+            // Summary Trend Chart (Core vs HEB)
+            new Chart(document.getElementById('summaryTrendChart'), {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+                    datasets: [
+                        {
+                            label: 'Core LY',
+                            data: [1650, 1810, 1720, 1950, 2100, 2350, 2250, 2100, 1920],
+                            borderColor: '#ccc',
+                            borderWidth: 1,
+                            pointRadius: 0,
+                            fill: false,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'HEB LY',
+                            data: [210, 280, 310, 290, 340, 380, 410, 440, 480],
+                            borderColor: '#ddd',
+                            borderWidth: 1,
+                            pointRadius: 0,
+                            fill: false,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Core TY',
+                            data: [1850, 2100, 1980, 2250, 2450, 2710, 2580, 2410, 2220],
+                            borderColor: '#000',
+                            borderWidth: 2,
+                            backgroundColor: 'rgba(0,0,0,0.08)',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'HEB TY',
+                            data: [240, 310, 380, 340, 410, 440, 490, 540, 590],
+                            borderColor: '#0078d4',
+                            borderWidth: 2,
+                            backgroundColor: 'rgba(0, 120, 212, 0.08)',
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { 
+                            position: 'top', 
+                            align: 'start', 
+                            labels: { boxWidth: 12, font: { size: 10 } } 
+                        }
+                    },
+                    scales: {
+                        y: { display: false },
+                        x: { 
+                            grid: { display: false },
+                            ticks: { font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+
+            // Bubble Chart (Performance)
+            new Chart(document.getElementById('bubbleChart1'), {
+                type: 'bubble',
+                data: {
+                    datasets: [
+                        { label: 'BA', data: [{x: 1240, y: 11.2, r: 10}], backgroundColor: '#d8d2c1' },
+                        { label: 'CC', data: [{x: 880, y: 12.1, r: 12}], backgroundColor: '#b0b0b0' },
+                        { label: 'FRS', data: [{x: 1850, y: 13.1, r: 15}], backgroundColor: '#000000' },
+                        { label: 'MUA', data: [{x: 640, y: 5.8, r: 8}], backgroundColor: '#d17d41' }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { title: { display: true, text: 'Sales (K)', font: { size: 10 } } },
+                        y: { title: { display: true, text: 'Growth %', font: { size: 10 } } }
+                    }
+                }
+            });
+
+            // Category MIX Sales (Stacked Horizontal Bar)
+            new Chart(document.getElementById('mixSalesChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['BA', 'CC', 'FRS', 'MUA', 'Sr. FRS', 'Total Avg'],
+                    datasets: [
+                        { label: 'FRAGRANCE', data: [42, 38, 35, 30, 45, 38], backgroundColor: '#b0b0b0' },
+                        { label: 'MAKEUP', data: [35, 32, 28, 42, 40, 34], backgroundColor: '#000000' },
+                        { label: 'SKINCARE', data: [23, 30, 37, 28, 15, 28], backgroundColor: '#d8d2c1' }
+                    ]
+                },
+                options: {
+                    indexAxis: 'y',
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { stacked: true, max: 100 },
+                        y: { stacked: true }
+                    },
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9 } } } }
+                }
+            });
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PPS China People Dashboard - 圣戈班</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-dark: #122d48;
+            --primary-blue: #235182;
+            --primary-light: #48a6d4;
+            --accent-teal: #0FA5A4;
+            --accent-orange: #E67E22;
+            --accent-green: #27AE60;
+            --accent-red: #D35400;
+            --bg-page: #E3ECF5;
+            --bg-card: #FFFFFF;
+            --text-dark: #2C3E50;
+            --text-muted: #7F8C9A;
+            --border-light: #E8ECF0;
+            --shadow-soft: 0 2px 8px rgba(0,0,0,0.04);
+            --shadow-premium: 0 4px 20px rgba(0,0,0,0.06);
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Noto Sans SC', -apple-system, sans-serif;
+            background: var(--bg-page);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-blue) 100%);
+            color: white;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-medium);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--primary-blue);
+            font-size: 14px;
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .header-subtitle {
+            font-size: 11px;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .user-text {
+            font-size: 13px;
+        }
+
+        .user-text .name {
+            font-weight: 600;
+        }
+
+        .user-text .role {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        .header-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .header-icon:hover {
+            background: rgba(255,255,255,0.25);
+        }
+
+        /* Dashboard Layout */
+        .dashboard {
+            display: grid;
+            grid-template-columns: minmax(320px, 1fr) minmax(450px, 1.6fr) minmax(380px, 1.4fr);
+            gap: 12px;
+            padding: 12px;
+            max-width: 1920px;
+            margin: 0 auto;
+            background: var(--bg-page);
+        }
+
+        .dashboard-column {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Profile Sidebar */
+        .profile-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .profile-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-soft);
+            overflow: hidden;
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--accent-teal) 100%);
+            padding: 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: white;
+            margin: 0 auto 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: var(--primary-blue);
+            font-weight: 700;
+            border: 3px solid rgba(255,255,255,0.5);
+        }
+
+        .profile-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .profile-id {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .profile-tags {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .tag.silver { background: linear-gradient(135deg, #C0C0C0, #A8A8A8); color: #333; }
+        .tag.pm { background: var(--accent-teal); color: white; }
+        .tag.talent { background: var(--accent-orange); color: white; }
+
+        .profile-body {
+            padding: 16px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .info-item {
+            text-align: center;
+            padding: 10px 8px;
+            background: #f8fafb;
+            border-radius: var(--radius-sm);
+        }
+
+        .info-item .label {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .info-item .value {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .info-item .sub {
+            font-size: 10px;
+            color: var(--accent-teal);
+            margin-top: 2px;
+        }
+
+        /* Section Card */
+        .section-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-soft);
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-teal));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dark);
+            flex: 1;
+        }
+
+        .section-content {
+            padding: 14px;
+        }
+
+        /* Timeline */
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .timeline-item {
+            display: flex;
+            gap: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed var(--border-light);
+        }
+
+        .timeline-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .timeline-date {
+            min-width: 50px;
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .timeline-content h4 {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 2px;
+        }
+
+        .timeline-content p {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Main Content */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Top Row - KPI and Charts */
+        .top-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+        }
+
+        .kpi-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-soft);
+            padding: 16px;
+            text-align: center;
+        }
+
+        .kpi-card .label {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .kpi-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .kpi-card .sub {
+            font-size: 11px;
+            color: var(--accent-teal);
+            margin-top: 4px;
+        }
+
+        /* Chart Card */
+        .chart-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-soft);
+            padding: 16px;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .chart-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chart-title::before {
+            content: '';
+            width: 4px;
+            height: 16px;
+            background: linear-gradient(180deg, var(--primary-blue), var(--accent-teal));
+            border-radius: 2px;
+        }
+
+        .chart-tabs {
+            display: flex;
+            gap: 4px;
+            background: #f0f2f5;
+            padding: 3px;
+            border-radius: 6px;
+        }
+
+        .chart-tab {
+            padding: 6px 12px;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-muted);
+            background: transparent;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .chart-tab.active {
+            background: white;
+            color: var(--primary-blue);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .chart-canvas {
+            height: 200px;
+            position: relative;
+        }
+
+        /* Middle Row */
+        .middle-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        /* 9-Box Grid */
+        .nine-box {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .nine-box-cell {
+            aspect-ratio: 1.2;
+            border-radius: var(--radius-sm);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            color: white;
+            text-align: center;
+            padding: 8px;
+        }
+
+        .nine-box-cell .count {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .nine-box-cell .label {
+            font-size: 9px;
+            opacity: 0.9;
+        }
+
+        .cell-blue { background: linear-gradient(135deg, #3498db, #2980b9); }
+        .cell-light-blue { background: linear-gradient(135deg, #85c1e9, #5dade2); }
+        .cell-orange { background: linear-gradient(135deg, #e67e22, #d35400); }
+        .cell-green { background: linear-gradient(135deg, #27ae60, #1e8449); }
+
+        /* Projects */
+        .project-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .project-item {
+            padding: 12px;
+            background: #f8fafb;
+            border-radius: var(--radius-sm);
+            border-left: 3px solid var(--accent-teal);
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .project-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .project-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 10px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status-dot.green { background: var(--accent-green); }
+        .status-dot.orange { background: var(--accent-orange); }
+        .status-dot.blue { background: var(--primary-blue); }
+
+        .project-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .project-progress {
+            height: 6px;
+            background: #e8ecf0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+
+        .progress-bar.teal { background: linear-gradient(90deg, var(--accent-teal), #0dd9d8); }
+        .progress-bar.blue { background: linear-gradient(90deg, var(--primary-blue), var(--primary-light)); }
+
+        .progress-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        /* ROI Card */
+        .roi-chart {
+            height: 180px;
+        }
+
+        /* Bottom Row */
+        .bottom-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+        }
+
+        /* Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .data-table th {
+            text-align: left;
+            padding: 10px 8px;
+            background: #f8fafb;
+            font-weight: 600;
+            color: var(--text-dark);
+            border-bottom: 2px solid var(--border-light);
+        }
+
+        .data-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--border-light);
+            color: var(--text-dark);
+        }
+
+        .data-table tr:hover {
+            background: #f8fafb;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .badge.rn { background: rgba(52, 152, 219, 0.15); color: #2980b9; }
+        .badge.mt { background: rgba(46, 204, 113, 0.15); color: #27ae60; }
+        .badge.lt { background: rgba(155, 89, 182, 0.15); color: #8e44ad; }
+
+        /* Successors */
+        .successor-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .successor-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            background: #f8fafb;
+            border-radius: var(--radius-sm);
+        }
+
+        .successor-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-teal));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .successor-info {
+            flex: 1;
+        }
+
+        .successor-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .successor-position {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .successor-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* Tags cloud */
+        .tags-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .cloud-tag {
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 11px;
+            font-weight: 500;
+            background: #f0f5fb;
+            color: var(--primary-blue);
+            border: 1px solid #d0dbe6;
+        }
+
+        /* Training Record */
+        .training-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px dashed var(--border-light);
+        }
+
+        .training-item:last-child {
+            border-bottom: none;
+        }
+
+        .training-name {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        .training-hours {
+            font-size: 11px;
+            color: var(--accent-teal);
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            .top-row, .middle-row, .bottom-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo-area">
+                <img src="Saint-Gobain.svg" alt="Saint-Gobain" style="height: 32px;">
+                <div style="width: 1px; height: 24px; background: rgba(255,255,255,0.3); margin: 0 16px;"></div>
+                <div class="header-title">PPS CHINA PEOPLE DASHBOARD</div>
+                <div class="header-icon" style="background: transparent; margin-left: 8px;">📖</div>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="user-info">
+                <span style="font-size: 13px; opacity: 0.9;">Name</span>
+                <span class="name" style="font-weight: 500;">艾小晓 | AI Xiaoxiao(Andy)</span>
+                <div class="header-icon">👤</div>
+                <div class="header-icon">📥</div>
+                <div class="header-icon">⚙️</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Dashboard -->
+    <div class="dashboard">
+        <!-- Column 1: Profile & History -->
+        <div class="dashboard-column">
+            <!-- Profile Card -->
+            <div class="profile-card" style="background: linear-gradient(135deg, #7fb7cf 0%, #4a8db7 100%); position: relative; padding: 20px; color: white;">
+                <div style="display: flex; align-items: flex-start; gap: 20px;">
+                    <div style="width: 100px; height: 120px; background: white; border-radius: 4px; overflow: hidden; border: 2px solid white;">
+                        <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 48px; color: #ccc;">👤</div>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 13px; opacity: 0.9; margin-bottom: 30px;">
+                            销售团队/Marketing Team<br>
+                            销售经理<br>
+                            Sales Manager<br>
+                            R51 | 03
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <div style="font-size: 20px; font-weight: 600;">AI Xiaoxiao(Andy)</div>
+                    <div style="font-size: 20px; font-weight: 600; margin-bottom: 10px;">艾小晓</div>
+                    <div style="font-size: 13px; font-weight: 500; margin-bottom: 20px;">X1234567 🔗</div>
+                    <div class="profile-tags" style="justify-content: flex-start; gap: 8px;">
+                        <span class="tag" style="background: #E5E7E9; color: #7F8C8D;">Silver</span>
+                        <span class="tag" style="background: #BDC3C7; color: #2C3E50;">PM 💼</span>
+                        <span class="tag" style="background: #D7BDE2; color: #8E44AD;">Technical Expert 👑</span>
+                        <span class="tag" style="background: #D4EFDF; color: #27AE60;">Consistent Star</span>
+                        <span class="tag" style="background: #FADBD8; color: #E74C3C;">High Risk</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Basic Info -->
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-title">Basic Information</div>
+                    <span style="font-size: 14px; color: var(--primary-blue);">ℹ️</span>
+                </div>
+                <div class="section-content">
+                    <div class="info-grid">
+                        <div class="info-item" style="display: flex; align-items: center; gap: 10px; text-align: left; padding: 12px; background: #EEF4F9;">
+                            <div style="font-size: 20px;">👤</div>
+                            <div>
+                                <div class="value">37</div>
+                                <div class="label">Age</div>
+                            </div>
+                        </div>
+                        <div class="info-item" style="display: flex; align-items: center; gap: 10px; text-align: left; padding: 12px; background: #EEF4F9;">
+                            <div style="font-size: 20px;">🎓</div>
+                            <div>
+                                <div class="value">Master <span style="font-size: 10px; font-weight: normal;">硕士</span></div>
+                                <div class="label">Highest Degree</div>
+                            </div>
+                        </div>
+                        <div class="info-item" style="display: flex; align-items: center; gap: 10px; text-align: left; padding: 12px; background: #EEF4F9;">
+                            <div style="font-size: 20px;">📄</div>
+                            <div>
+                                <div class="value" style="font-size: 12px;">Open-ended Contract</div>
+                                <div class="label">Contract Expect End Date</div>
+                            </div>
+                        </div>
+                        <div class="info-item" style="display: flex; align-items: center; gap: 10px; text-align: left; padding: 12px; background: #EEF4F9;">
+                            <div style="font-size: 20px;">📁</div>
+                            <div>
+                                <div class="value">SG3</div>
+                                <div class="label">Competency Level</div>
+                            </div>
+                        </div>
+                        <div class="info-item" style="display: flex; align-items: center; gap: 10px; text-align: left; padding: 12px; background: #EEF4F9;">
+                            <div style="font-size: 20px;">📐</div>
+                            <div>
+                                <div class="value">4.1 <span style="font-size: 10px; font-weight: normal;">/ 5</span></div>
+                                <div class="label">Competency Score</div>
+                            </div>
+                        </div>
+                        <div class="info-item" style="display: flex; align-items: center; gap: 10px; text-align: left; padding: 12px; background: #EEF4F9;">
+                            <div style="font-size: 20px;">📊</div>
+                            <div>
+                                <div class="value">3.0 <span style="font-size: 10px; font-weight: normal;">/ 4</span></div>
+                                <div class="label">Attitudes Score</div>
+                            </div>
+                        </div>
+                        <div class="info-item" style="display: flex; align-items: center; gap: 10px; text-align: left; padding: 12px; background: #EEF4F9;">
+                            <div style="font-size: 20px;">📅</div>
+                            <div>
+                                <div class="value">2018/7/1</div>
+                                <div class="label">Group Entry Date</div>
+                            </div>
+                        </div>
+                        <div class="info-item" style="display: flex; align-items: center; gap: 10px; text-align: left; padding: 12px; background: #EEF4F9;">
+                            <div style="font-size: 20px;">🏨</div>
+                            <div>
+                                <div class="value">2018/7/1</div>
+                                <div class="label">Company Entry Date</div>
+                            </div>
+                        </div>
+                        <div class="info-item" style="display: flex; align-items: center; gap: 10px; text-align: left; padding: 12px; background: #EEF4F9;">
+                            <div style="font-size: 20px;">⏳</div>
+                            <div>
+                                <div class="value">--</div>
+                                <div class="label">Years in Current Position</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Saint-Gobain Career History -->
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-title" style="display: flex; align-items: center; gap: 8px;">🏛️ Saint-Gobain Career History</div>
+                </div>
+                <div class="section-content" style="padding: 0;">
+                    <table class="data-table" style="font-size: 11px;">
+                        <thead style="background: #F0F4F8;">
+                            <tr>
+                                <th style="color: var(--primary-blue);">Position Entry Date</th>
+                                <th>Title</th>
+                                <th>Pay</th>
+                                <th>Business Unit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>2025/1/1</td><td>Sales Manager</td><td>03</td><td>SG PPS (Shanghai)</td></tr>
+                            <tr><td>2023/3/1</td><td>District Sales Manager</td><td>02</td><td>SG PPS (Shanghai)</td></tr>
+                            <tr><td>2021/9/1</td><td>District Sales Manager</td><td>01</td><td>SG PPS (Shanghai)</td></tr>
+                            <tr><td>2018/7/1</td><td>Application Engineer</td><td>B</td><td>SG PPS (Shanghai)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Prior Work Experiences -->
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-title" style="display: flex; align-items: center; gap: 8px;">📝 Prior Work Experiences</div>
+                </div>
+                <div class="section-content">
+                    <div class="timeline" style="padding-left: 10px;">
+                        <div class="timeline-item" style="border-left: 2px solid #E8ECF0; padding-left: 20px; position: relative;">
+                            <div style="position: absolute; left: -6px; top: 0; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--primary-blue); background: white;"></div>
+                            <div class="timeline-date">2015/7 - 2018/6</div>
+                            <div class="timeline-content">
+                                <h4>BASF Shanghai | 巴斯夫涂料上海有限公司</h4>
+                                <p>Sale Engineer</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item" style="border-left: 2px solid #E8ECF0; padding-left: 20px; position: relative; margin-top: 15px;">
+                            <div style="position: absolute; left: -6px; top: 0; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--primary-blue); background: white;"></div>
+                            <div class="timeline-date">2013/7 - 2015/6</div>
+                            <div class="timeline-content">
+                                <h4>ABB Engineering Co., Ltd | ABB工程有限公司</h4>
+                                <p>Product Specialist</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Education -->
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-title" style="display: flex; align-items: center; gap: 8px;">🎓 Education</div>
+                </div>
+                <div class="section-content">
+                    <div style="padding: 12px; background: #f8fafc; border-radius: 8px; margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <div style="font-weight: 600; color: var(--primary-blue);">华东理工大学 化学工程和工艺</div>
+                            <div style="font-size: 11px; color: var(--text-muted);">硕士 Master</div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="font-size: 11px; color: var(--text-muted);">ECUST_Bachelor of Chemical Engineering and Tech</div>
+                            <div style="font-size: 11px; color: var(--text-muted);">2013/7/1</div>
+                        </div>
+                    </div>
+                    <div style="padding: 12px; background: #f8fafc; border-radius: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <div style="font-weight: 600; color: var(--primary-blue);">东华大学 复合材料</div>
+                            <div style="font-size: 11px; color: var(--text-muted);">本科 Bachelor</div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="font-size: 11px; color: var(--text-muted);">Donghua University_Bachelor of Composite Material</div>
+                            <div style="font-size: 11px; color: var(--text-muted);">2010/7/1</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Column 2: Assessments & Growth -->
+        <div class="dashboard-column">
+            <!-- 9-Box Matrix -->
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-title" style="display: flex; align-items: center; gap: 8px;">📊 9-Box Matrix</div>
+                    <div style="font-size: 10px; color: var(--text-muted); text-align: right; margin-left: auto;">9 Consistent Star | 4 | High Risk<br>Data Version: 2024</div>
+                </div>
+                <div class="section-content" style="padding: 10px;">
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
+                        <div style="background: #F0F4F8; padding: 12px; text-align: center; border-radius: 4px; border: 1px solid #D6EAF8;">
+                            <div style="font-size: 10px; color: #2E86C1;">High Professional</div>
+                        </div>
+                        <div style="background: #FEF9E7; padding: 12px; text-align: center; border-radius: 4px; border: 1px solid #FAD7A0;">
+                            <div style="font-size: 10px; color: #D68910;">High Professional Plus</div>
+                        </div>
+                        <div style="background: #E8F8F5; padding: 12px; text-align: center; border-radius: 4px; border: 1px solid #A3E4D7; position: relative;">
+                            <div style="font-size: 11px; color: #117864; font-weight: 600;">Consistent Star</div>
+                            <div style="font-size: 9px; color: #117864;">Y2024: 4-</div>
+                        </div>
+                        <div style="background: #F0F4F8; padding: 12px; text-align: center; border-radius: 4px; border: 1px solid #D6EAF8;">
+                            <div style="font-size: 10px; color: #2E86C1;">Solid Professional</div>
+                        </div>
+                        <div style="background: #FEF9E7; padding: 12px; text-align: center; border-radius: 4px; border: 1px solid #FAD7A0; position: relative;">
+                            <div style="font-size: 11px; color: #D68910; font-weight: 600;">Key Performer</div>
+                            <div style="font-size: 9px; color: #D68910;">Y2023: 3+<br>Y2022: 3-</div>
+                        </div>
+                        <div style="background: #FEF9E7; padding: 12px; text-align: center; border-radius: 4px; border: 1px solid #FAD7A0;">
+                            <div style="font-size: 10px; color: #D68910;">Future Star</div>
+                        </div>
+                        <div style="background: #FDEDEC; padding: 12px; text-align: center; border-radius: 4px; border: 1px solid #F5B7B1;">
+                            <div style="font-size: 10px; color: #A93226;">Lower Performer</div>
+                        </div>
+                        <div style="background: #FDEDEC; padding: 12px; text-align: center; border-radius: 4px; border: 1px solid #F5B7B1;">
+                            <div style="font-size: 10px; color: #A93226;">Inconsistent Performer</div>
+                        </div>
+                        <div style="background: #FEF9E7; padding: 12px; text-align: center; border-radius: 4px; border: 1px solid #FAD7A0;">
+                            <div style="font-size: 10px; color: #D68910;">Diamond in the Rough</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assessment -->
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-title" style="display: flex; align-items: center; gap: 8px;">🎯 Assessment</div>
+                    <div class="chart-tabs" style="margin-left: auto;">
+                        <span class="active" style="font-size: 10px; color: var(--primary-blue); font-weight: 600; cursor: pointer;">Competency</span>
+                        <span style="font-size: 10px; color: var(--text-muted); cursor: pointer; margin-left: 10px;">Attitudes</span>
+                        <span style="font-size: 10px; color: var(--text-muted); cursor: pointer; margin-left: 10px;">PM Competency</span>
+                    </div>
+                </div>
+                <div class="section-content" style="display: flex; gap: 10px;">
+                    <div style="flex: 1.2; height: 180px;">
+                        <div id="assessmentRadar" style="width: 100%; height: 100%;"></div>
+                    </div>
+                    <div style="flex: 0.8; font-size: 10.5px;">
+                        <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #F0F4F8; padding-bottom: 4px; margin-bottom: 6px; color: var(--primary-blue);">
+                            <span style="font-weight: 600;">Criteria</span>
+                            <span style="font-weight: 600;">Score</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>项目管理</span><span>4.60</span></div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>产品知识与应用</span><span>4.50</span></div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: #3498db;"><span>工具应用</span><span>4.20</span></div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: #3498db;"><span>工作效能</span><span>4.10</span></div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: #3498db;"><span>战略商业洞察</span><span>4.10</span></div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: #3498db;"><span>销售策略与战术</span><span>4.07</span></div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>市场开发</span><span>3.80</span></div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: #E67E22;"><span>客户维护与管理</span><span>3.53</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assessment Trend -->
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-title" style="display: flex; align-items: center; gap: 8px;">📈 Assessment Trend</div>
+                    <div class="chart-tabs" style="margin-left: auto;">
+                        <span class="active" style="font-size: 10px; color: var(--primary-blue); font-weight: 600;">Competency</span>
+                        <span style="font-size: 10px; color: var(--text-muted); margin-left:10px;">Attitudes</span>
+                        <span style="font-size: 10px; color: var(--text-muted); margin-left:10px;">PM Competency</span>
+                    </div>
+                </div>
+                <div class="section-content">
+                    <div id="assessmentTrendChart" style="width: 100%; height: 180px;"></div>
+                </div>
+            </div>
+
+            <!-- 360-Degree Feedback -->
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-title" style="display: flex; align-items: center; gap: 8px;">🔄 360-Degree Feedback</div>
+                    <div style="font-size: 10px; color: var(--text-muted); margin-left: auto;">Y2024: Score: 4.50 / 5 | Ranking: 6 / 33</div>
+                </div>
+                <div class="section-content" style="display: flex; gap: 10px;">
+                    <div style="flex: 1.2; height: 180px;">
+                        <div id="feedbackRadar" style="width: 100%; height: 100%;"></div>
+                    </div>
+                    <div style="flex: 0.8; font-size: 10.5px;">
+                        <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #F0F4F8; padding-bottom: 4px; margin-bottom: 6px; color: var(--primary-blue);">
+                            <span style="font-weight: 600;">Criteria</span>
+                            <span style="font-weight: 600;">Score</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>职业素养</span><span>4.40</span></div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>业务能力</span><span>4.20</span></div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: #3498db;"><span>战略规划与执行</span><span>4.20</span></div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: #3498db;"><span>授权辅导</span><span>4.20</span></div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: #3498db;"><span>分析判断</span><span>4.10</span></div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: #3498db;"><span>激励赋能</span><span>4.10</span></div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>学习创新</span><span>3.90</span></div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>沟通协调</span><span>3.80</span></div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: #E67E22;"><span>客户导向</span><span>3.70</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="section-card">
+                    <div class="section-header"><div class="section-title">Key Training Record</div></div>
+                    <div class="section-content" style="padding: 10px;">
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 10px;">
+                                <span style="color: #666;">2024</span>
+                                <span style="background: #E8F8F5; color: #117864; padding: 2px 8px; border-radius: 10px; font-weight: 600;">Talent Lab</span>
+                                <span style="flex: 1; margin-left: 10px;">Agile Leadership Path</span>
+                            </div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 10px;">
+                                <span style="color: #666;">2022</span>
+                                <span style="background: #EBF5FB; color: #2E86C1; padding: 2px 8px; border-radius: 10px; font-weight: 600;">Leadership</span>
+                                <span style="flex: 1; margin-left: 10px;">Asia Future Leader Program</span>
+                            </div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 10px;">
+                                <span style="color: #666;">2020</span>
+                                <span style="background: #FEF9E7; color: #D68910; padding: 2px 8px; border-radius: 10px; font-weight: 600;">Overseas</span>
+                                <span style="flex: 1; margin-left: 10px;">比利时Korbich工厂培训</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="section-card">
+                    <div class="section-header"><div class="section-title">Strength & Improvement</div></div>
+                    <div class="section-content" style="padding: 10px; font-size: 10px; line-height: 1.5;">
+                        <div style="margin-bottom: 10px;">
+                            <span style="color: var(--primary-blue); font-weight: 600;">Manager:</span>
+                            <div style="margin-top: 2px; padding-left: 6px; border-left: 2px solid #E8F8F5;">
+                                • Quick learner / Good communication<br>• Good customer management / Team work
+                            </div>
+                        </div>
+                        <div>
+                            <span style="color: var(--primary-blue); font-weight: 600;">Employee:</span>
+                            <div style="margin-top: 2px; padding-left: 6px; border-left: 2px solid #EBF5FB;">
+                                • Good communication / Teamwork spirit<br>• Product knowledge skill
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Column 3: Performance & Career -->
+        <div class="dashboard-column">
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-title" style="display: flex; align-items: center; gap: 8px;">📈 Performance Trend</div>
+                    <span style="margin-left: auto; color: var(--primary-blue);">ℹ️</span>
+                </div>
+                <div class="section-content">
+                    <div id="performanceTrendChart" style="width: 100%; height: 180px;"></div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-header"><div class="section-title">Annual Bonus Rate Trend</div></div>
+                <div class="section-content">
+                    <div id="bonusRateTrendChart" style="width: 100%; height: 180px;"></div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-header"><div class="section-title">Career Plan & Succession</div></div>
+                <div class="section-content" style="padding: 15px;">
+                    <div style="border-left: 4px solid #3498db; padding-left: 12px; margin-bottom: 15px;">
+                        <div style="font-size: 11px; font-weight: 600; margin-bottom: 8px; color: var(--primary-blue);">Career Plan</div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #FEF9E7; border-radius: 4px; margin-bottom: 6px; border: 1px solid #FAD7A0;">
+                            <span style="font-size: 10.5px; font-weight: 600; color: #D68910;">CONTINUE IN THE ROLE</span>
+                            <span style="background: #D68910; color: white; padding: 2px 6px; border-radius: 4px; font-size: 9px;">MT</span>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #FDEDEC; border-radius: 4px; border: 1px solid #F5B7B1;">
+                            <span style="font-size: 10.5px; font-weight: 600; color: #A93226;">Business Director</span>
+                            <span style="background: #A93226; color: white; padding: 2px 6px; border-radius: 4px; font-size: 9px;">LT</span>
+                        </div>
+                    </div>
+                    <div style="border-left: 4px solid #27AE60; padding-left: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <div style="font-size: 11px; font-weight: 600; color: var(--primary-blue);">Succession</div>
+                            <div style="font-size: 10px; color: #27AE60; font-weight: 600;">Ready Now</div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 24px; height: 24px; border-radius: 50%; background: #A3E4D7; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #117864; font-weight: 700;">L</div>
+                                <span style="font-size: 11px; flex: 1;">Lucas</span>
+                                <span style="background: #A3E4D7; color: #117864; padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 700;">RN</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 24px; height: 24px; border-radius: 50%; background: #FAD7A0; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #D68910; font-weight: 700;">J</div>
+                                <span style="font-size: 11px; flex: 1;">Jake</span>
+                                <span style="background: #FAD7A0; color: #D68910; padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 700;">MT</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 24px; height: 24px; border-radius: 50%; background: #F5B7B1; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #A93226; font-weight: 700;">H</div>
+                                <span style="font-size: 11px; flex: 1;">Harry</span>
+                                <span style="background: #F5B7B1; color: #A93226; padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 700;">LT</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-header"><div class="section-title">ROI</div></div>
+                <div class="section-content">
+                    <div id="roiBarChart" style="width: 100%; height: 180px;"></div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-title">Project</div>
+                    <div style="font-size: 10px; color: var(--text-muted); margin-left: auto;">Total Project: 3</div>
+                </div>
+                <div class="section-content" style="padding: 10px;">
+                    <div style="padding: 10px; background: #F8FAFC; border-radius: 6px; border-left: 3px solid #3498db; margin-bottom: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <div style="font-size: 11px; font-weight: 600; color: var(--primary-blue);">蒲公英解决方案</div>
+                            <div style="font-size: 10px; color: #3498db; font-weight: 700;">2024</div>
+                        </div>
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            <span style="background: #EBF5FB; color: #3498db; padding: 1px 6px; border-radius: 4px; font-size: 9px;">1.增长型</span>
+                            <span style="background: #FEF9E7; color: #D68910; padding: 1px 6px; border-radius: 4px; font-size: 9px;">M2</span>
+                            <span style="background: #E8F8F5; color: #117864; padding: 1px 6px; border-radius: 4px; font-size: 9px;">In Progress</span>
+                        </div>
+                    </div>
+                    <div style="padding: 10px; background: #F8FAFC; border-radius: 6px; border-left: 3px solid #27AE60;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <div style="font-size: 11px; font-weight: 600; color: var(--primary-blue);">ALC 材料市场开拓</div>
+                            <div style="font-size: 10px; color: #27AE60; font-weight: 700;">2021</div>
+                        </div>
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            <span style="background: #EBF5FB; color: #3498db; padding: 1px 6px; border-radius: 4px; font-size: 9px;">1.增长型</span>
+                            <span style="background: #FEF9E7; color: #D68910; padding: 1px 6px; border-radius: 4px; font-size: 9px;">M3</span>
+                            <span style="background: #E8F8F5; color: #117864; padding: 1px 6px; border-radius: 4px; font-size: 9px;">Completed</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Common configuration
+        const colors = {
+            primary: '#235182',
+            teal: '#0FA5A4',
+            lightTeal: '#A3E4D7',
+            orange: '#E67E22',
+            lightOrange: '#FAD7A0',
+            blue: '#3498db',
+            lightBlue: '#EBF5FB',
+            red: '#E74C3C',
+            lightRed: '#F5B7B1',
+            text: '#2C3E50',
+            muted: '#7F8C9A',
+            grid: '#F0F4F8'
+        };
+
+        // Initialize ECharts instances
+        const charts = {};
+        const initChart = (id) => {
+            const el = document.getElementById(id);
+            if (el) charts[id] = echarts.init(el);
+            return charts[id];
+        };
+
+        // 1. Assessment Radar
+        const assessmentRadar = initChart('assessmentRadar');
+        assessmentRadar && assessmentRadar.setOption({
+            radar: {
+                indicator: [
+                    { name: '项目管理', max: 5 },
+                    { name: '产品知识/应用', max: 5 },
+                    { name: '工具应用', max: 5 },
+                    { name: '工作效能', max: 5 },
+                    { name: '战略洞察', max: 5 },
+                    { name: '销售策略', max: 5 }
+                ],
+                radius: '65%',
+                axisName: { color: colors.muted, fontSize: 9 },
+                splitArea: { show: false },
+                axisLine: { lineStyle: { color: colors.grid } },
+                splitLine: { lineStyle: { color: colors.grid } }
+            },
+            series: [{
+                type: 'radar',
+                data: [{
+                    value: [4.6, 4.5, 4.2, 4.1, 4.1, 4.0],
+                    name: 'Competency',
+                    lineStyle: { color: colors.blue, width: 2 },
+                    areaStyle: { color: 'rgba(52, 152, 219, 0.2)' },
+                    itemStyle: { color: colors.blue }
+                }]
+            }]
+        });
+
+        // 2. Assessment Trend (Bar)
+        const assessmentTrendChart = initChart('assessmentTrendChart');
+        assessmentTrendChart && assessmentTrendChart.setOption({
+            tooltip: { trigger: 'axis' },
+            legend: { bottom: 0, itemWidth: 8, textStyle: { fontSize: 10 } },
+            grid: { top: '15%', left: '5%', right: '5%', bottom: '15%', containLabel: true },
+            xAxis: { type: 'category', data: ['项目管理', '产品知识', '工具应用', '工作效能', '战略洞察', '销售策略'], axisLabel: { fontSize: 9, color: colors.muted } },
+            yAxis: { type: 'value', max: 5, splitLine: { lineStyle: { type: 'dashed' } } },
+            series: [
+                { name: '2022', type: 'bar', data: [3.8, 3.5, 4.0, 3.5, 3.8, 4.0], itemStyle: { color: '#BDC3C7' }, barWidth: '15%' },
+                { name: '2023', type: 'bar', data: [4.2, 4.0, 4.1, 3.8, 4.0, 4.1], itemStyle: { color: '#5dade2' }, barWidth: '15%' },
+                { name: '2024', type: 'bar', data: [4.5, 4.3, 4.2, 4.0, 4.1, 4.2], itemStyle: { color: colors.primary }, barWidth: '15%' },
+                { name: '2025', type: 'bar', data: [4.6, 4.5, 4.3, 4.2, 4.1, 4.3], itemStyle: { color: colors.teal }, barWidth: '15%' }
+            ]
+        });
+
+        // 3. 360 Feedback Radar
+        const feedbackRadar = initChart('feedbackRadar');
+        feedbackRadar && feedbackRadar.setOption({
+            legend: { right: 0, top: 'center', orient: 'vertical', itemWidth: 8, textStyle: { fontSize: 9 } },
+            radar: {
+                indicator: [
+                    { name: '职业素养', max: 5 },
+                    { name: '业务能力', max: 5 },
+                    { name: '战略执行', max: 5 },
+                    { name: '授权辅导', max: 5 },
+                    { name: '分析判断', max: 5 },
+                    { name: '沟通协调', max: 5 }
+                ],
+                radius: '60%',
+                axisName: { color: colors.muted, fontSize: 9 },
+                splitArea: { show: false },
+                splitLine: { lineStyle: { color: colors.grid } }
+            },
+            series: [{
+                type: 'radar',
+                data: [
+                    {
+                        value: [4.4, 4.2, 4.2, 4.2, 4.1, 3.8],
+                        name: '2024',
+                        lineStyle: { color: colors.blue, width: 2 },
+                        areaStyle: { color: 'rgba(52, 152, 219, 0.2)' },
+                        itemStyle: { color: colors.blue }
+                    },
+                    {
+                        value: [4.1, 3.9, 4.0, 3.8, 3.9, 3.6],
+                        name: '2023',
+                        lineStyle: { color: '#BDC3C7', width: 2, type: 'dashed' },
+                        itemStyle: { color: '#BDC3C7' }
+                    }
+                ]
+            }]
+        });
+
+        // 4. Performance Trend (Line + Area)
+        const performanceTrendChart = initChart('performanceTrendChart');
+        performanceTrendChart && performanceTrendChart.setOption({
+            grid: { top: '15%', left: '5%', right: '5%', bottom: '10%', containLabel: true },
+            xAxis: { type: 'category', data: ['2020', '2021', '2022', '2023', '2024'], boundaryGap: false },
+            yAxis: { type: 'value', min: 2, max: 5 },
+            series: [{
+                data: [3.5, 3.8, 3.9, 4.2, 4.5],
+                type: 'line',
+                smooth: true,
+                symbol: 'circle',
+                symbolSize: 8,
+                itemStyle: { color: colors.primary },
+                lineStyle: { width: 3 },
+                areaStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: 'rgba(35, 81, 130, 0.3)' },
+                        { offset: 1, color: 'rgba(35, 81, 130, 0.0)' }
+                    ])
+                },
+                label: { show: true, position: 'top', fontSize: 10, fontWeight: 'bold' }
+            }]
+        });
+
+        // 5. Bonus Rate Trend (Stacked Bar + Line)
+        const bonusRateTrendChart = initChart('bonusRateTrendChart');
+        bonusRateTrendChart && bonusRateTrendChart.setOption({
+            tooltip: { trigger: 'axis' },
+            legend: { bottom: 0, itemWidth: 8, textStyle: { fontSize: 9 } },
+            grid: { top: '15%', left: '5%', right: '5%', bottom: '15%', containLabel: true },
+            xAxis: { type: 'category', data: ['2020', '2021', '2022', '2023', '2024'] },
+            yAxis: { type: 'value', axisLabel: { formatter: '{value}%' } },
+            series: [
+                { name: 'Actual Bonus', type: 'bar', stack: 'total', data: [20, 40, 36, 45, 60], itemStyle: { color: '#5dade2' }, barWidth: '40%' },
+                { name: 'Target Bonus', type: 'bar', stack: 'total', data: [16, 20, 24, 25, 30], itemStyle: { color: colors.primary }, opacity: 0.7 },
+                { name: 'Max Bonus', type: 'line', data: [90, 90, 90, 90, 90], itemStyle: { color: colors.orange }, lineStyle: { type: 'dashed' }, symbol: 'none' }
+            ]
+        });
+
+        // 6. ROI Bar Chart
+        const roiBarChart = initChart('roiBarChart');
+        roiBarChart && roiBarChart.setOption({
+            legend: { bottom: 0, itemWidth: 8, textStyle: { fontSize: 9 } },
+            grid: { top: '15%', left: '5%', right: '5%', bottom: '15%', containLabel: true },
+            xAxis: { type: 'category', data: ['2022', '2023', '2024'] },
+            yAxis: { type: 'value' },
+            series: [
+                { name: 'AI Xiaoxiao(Andy)', type: 'bar', data: [17.8, 27.2, 35.4], itemStyle: { color: colors.primary }, barWidth: '30%', label: { show: true, position: 'top', fontSize: 9 } },
+                { name: 'Average', type: 'line', data: [12, 12, 12], lineStyle: { color: colors.orange }, symbol: 'rect', symbolSize: 10, itemStyle: { color: colors.orange } }
+            ]
+        });
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            Object.values(charts).forEach(chart => chart.resize());
+        });
+    </script>
+</body>
+</html>
