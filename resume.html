@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zoe Chou · 数据作品集</title>
+    <style>
+        /* 定义两套颜色模式 */
+        :root {
+            /* 默认深色模式 (黑 + 绿) */
+            --bg: #000000;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+            --accent: #00FFD1;
+            --text: #F5F5F7;
+            --text-dim: #86868B;
+            --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            --icon-stroke: #F5F5F7;
+            --icon-bg: rgba(255, 255, 255, 0.05);
+        }
+
+        [data-theme="light"] {
+            /* 浅色模式 (白 + 紫) */
+            --bg: #FBFBFB;
+            --glass: rgba(0, 0, 0, 0.02);
+            --border: rgba(0, 0, 0, 0.08);
+            --accent: #8E77FF;
+            --text: #1D1D1F;
+            --text-dim: #6E6E73;
+            --card-shadow: 0 8px 32px 0 rgba(142, 119, 255, 0.1);
+            --icon-stroke: #8E77FF;
+            --icon-bg: rgba(142, 119, 255, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Inter", "SF Pro Text", "PingFang SC", -apple-system, sans-serif;
+            letter-spacing: -0.015em;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* DotGrid 背景 Canvas */
+        #dotgrid-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* 模式切换按钮样式 */
+        .theme-switch-wrapper {
+            position: fixed;
+            top: 30px;
+            right: 40px;
+            z-index: 1000;
+        }
+
+        .theme-switch {
+            background: var(--icon-bg);
+            border: 1px solid var(--border);
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .theme-switch:hover {
+            border-color: var(--accent);
+            transform: translateY(-3px);
+            background: var(--glass);
+            box-shadow: 0 8px 20px rgba(142, 119, 255, 0.2);
+        }
+
+        .theme-switch svg {
+            width: 22px;
+            height: 22px;
+            fill: none;
+            stroke: var(--icon-stroke);
+            stroke-width: 2.2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* 强制图标显示逻辑 */
+        .sun-icon {
+            display: block;
+        }
+
+        .moon-icon {
+            display: none;
+        }
+
+        [data-theme="light"] .sun-icon {
+            display: none !important;
+        }
+
+        [data-theme="light"] .moon-icon {
+            display: block !important;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 80px 40px;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 80px;
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+        }
+
+        .status {
+            font-size: 0.8rem;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        header {
+            margin-bottom: 120px;
+        }
+
+        h1 {
+            font-size: clamp(3rem, 10vw, 6.5rem);
+            font-weight: 700;
+            line-height: 0.9;
+            margin-bottom: 15px;
+        }
+
+        .cn-title {
+            display: block;
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            font-weight: 400;
+            color: var(--text-dim);
+            opacity: 0.5;
+            letter-spacing: 0.2rem;
+            margin-bottom: 40px;
+        }
+
+        .hero-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: 40px;
+        }
+
+        .hero-desc {
+            font-size: 1.4rem;
+            color: var(--text-dim);
+            max-width: 600px;
+            line-height: 1.4;
+            font-weight: 400;
+        }
+
+        .hero-sub {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            margin-top: 10px;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+        }
+
+        .contact-info {
+            margin-top: 40px;
+            display: flex;
+            gap: 40px;
+            font-size: 0.85rem;
+            font-weight: 400;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .contact-item span {
+            color: var(--text-dim);
+            font-weight: 600;
+            opacity: 0.6;
+        }
+
+        .contact-item p {
+            color: var(--accent);
+        }
+
+        h2 {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: var(--text-dim);
+            margin-bottom: 40px;
+        }
+
+        .timeline {
+            margin-bottom: 100px;
+            position: relative;
+            padding-left: 20px;
+            border-left: 1px solid var(--border);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 40px;
+            padding-left: 30px;
+        }
+
+        .timeline-item::before {
+            content: "";
+            position: absolute;
+            left: -25px;
+            top: 8px;
+            width: 9px;
+            height: 9px;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        .timeline-date {
+            font-size: 0.85rem;
+            color: var(--accent);
+            font-family: monospace;
+            margin-bottom: 5px;
+        }
+
+        .timeline-company {
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .timeline-company span {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            margin-left: 15px;
+            font-weight: 400;
+        }
+
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 24px;
+            margin-bottom: 80px;
+        }
+
+        /* 3D 翻转卡片核心样式 */
+        .project-card-container {
+            grid-column: span 4;
+            perspective: 1500px;
+            position: relative;
+            /* Height will be managed by JS for synchronization */
+        }
+
+        .project-card-container.large {
+            grid-column: span 8;
+        }
+
+        .project-card-container.small {
+            grid-column: span 4;
+        }
+
+        .project-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+            transform-style: preserve-3d;
+        }
+
+        .project-card-container.flipped .project-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .project-card-face {
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 32px;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            padding: 40px;
+            box-shadow: var(--card-shadow);
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .face-back {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform: rotateY(180deg);
+        }
+
+        /* 语言切换按钮 */
+        .lang-toggle {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            z-index: 100;
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            opacity: 0.8;
+            box-shadow: 0 4px 12px rgba(0, 255, 209, 0.2);
+            pointer-events: auto;
+        }
+
+        .lang-toggle:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .projects-disclaimer {
+            grid-column: span 12;
+            text-align: left;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            opacity: 0.6;
+            margin-bottom: 24px;
+            margin-top: 0;
+
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .project-card-container:hover .project-card-face {
+            border-color: var(--accent);
+        }
+
+        .client-name {
+            font-family: "Times New Roman", serif;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .project-title {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .project-tags {
+            margin-top: 20px;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            opacity: 0.8;
+            letter-spacing: 0.5px;
+            line-height: 1.6;
+        }
+
+        .placeholder-img {
+            width: 100%;
+            height: 240px;
+            background: var(--glass);
+            border-radius: 20px;
+            margin-top: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-dim);
+            font-weight: 700;
+            font-size: 3rem;
+            border: 1px dashed var(--border);
+            opacity: 0.3;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 飞利浦案例预览图样式 */
+        .philips-preview {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #F4F5F6 0%, #E8ECF1 100%);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 8px;
+            color: #1A1A2E;
+            overflow: hidden;
+        }
+
+        .philips-preview-header {
+            background: #fff;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid #e0e3e8;
+        }
+
+        .philips-logo-box {
+            background: #005699;
+            color: #fff;
+            padding: 3px 8px;
+            font-size: 7px;
+            font-weight: 700;
+            border-radius: 2px;
+        }
+
+        .philips-preview-tabs {
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        .philips-preview-tab {
+            padding: 2px 6px;
+            font-size: 6px;
+            color: #4376D8;
+            border-bottom: 2px solid #4376D8;
+        }
+
+        .philips-preview-filters {
+            background: #F4F5F6;
+            padding: 6px 12px;
+            display: flex;
+            gap: 6px;
+        }
+
+        .philips-preview-filter {
+            background: #fff;
+            border: 1px solid #e0e3e8;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 5px;
+        }
+
+        .philips-preview-kpi-row {
+            display: flex;
+            gap: 6px;
+            padding: 8px 12px;
+        }
+
+        .philips-preview-kpi {
+            background: #fff;
+            border: 1px solid #e0e3e8;
+            border-radius: 4px;
+            padding: 6px;
+            flex: 1;
+            text-align: center;
+        }
+
+        .philips-preview-kpi-label {
+            font-size: 5px;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        .philips-preview-kpi-value {
+            font-size: 10px;
+            font-weight: 700;
+            color: #1A1A2E;
+            margin-top: 2px;
+        }
+
+        .philips-preview-table {
+            margin: 0 12px;
+            background: #fff;
+            border: 1px solid #e0e3e8;
+            border-radius: 4px;
+            overflow: hidden;
+            flex: 1;
+        }
+
+        .philips-preview-table-header {
+            background: #2c3e7a;
+            color: #fff;
+            padding: 4px 8px;
+            font-size: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .philips-preview-table-row {
+            padding: 3px 8px;
+            border-bottom: 1px solid #f0f2f5;
+            font-size: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .philips-preview-badge {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .project-card:hover .philips-preview-badge {
+            opacity: 1;
+        }
+
+        /* 跑马灯样式 - 已修复重叠问题 */
+        .marquee-section {
+            margin: 0 0 120px 0;
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+        }
+
+        /* iframe 预览样式 */
+        .iframe-preview {
+            width: 100%;
+            height: 240px;
+            border-radius: 20px;
+            margin-top: 30px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid var(--border);
+            background: #fff;
+        }
+
+        .iframe-preview iframe {
+            width: 200%;
+            height: 200%;
+            transform: scale(0.5);
+            transform-origin: 0 0;
+            border: none;
+            pointer-events: none;
+        }
+
+        .iframe-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: transparent;
+            z-index: 10;
+        }
+
+        .iframe-badge {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        .project-card:hover .iframe-badge {
+            opacity: 1;
+        }
+
+        .marquee-wrapper {
+            display: flex;
+            width: fit-content;
+            animation: scroll 30s linear infinite;
+            gap: 4rem;
+        }
+
+        .marquee-content {
+            display: flex;
+            align-items: center;
+            gap: 4rem;
+            padding: 0 2rem;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .client-logo {
+            font-family: "Times New Roman", serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text);
+            opacity: 0.6;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            cursor: default;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .client-logo:hover {
+            color: var(--accent);
+            opacity: 1;
+            text-shadow: 0 0 20px var(--accent);
+            transform: scale(1.05);
+        }
+
+        @keyframes scroll {
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+
+        .skills-section {
+            margin-top: 60px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+        }
+
+        .skill-group h3 {
+            font-size: 1.6rem;
+            margin-bottom: 40px;
+            color: var(--accent);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .skill-list {
+            list-style: none;
+        }
+
+        .skill-list li {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 20px;
+            margin-bottom: 35px;
+        }
+
+        .skill-list li:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+
+        .skill-list b {
+            color: var(--text);
+            display: block;
+            font-size: 1.15rem;
+            margin-bottom: 8px;
+        }
+
+        .skill-list .sub-label {
+            display: block;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+
+        .lang-sep {
+            color: var(--accent);
+            margin: 0 8px;
+            opacity: 0.5;
+        }
+
+        .extra-section {
+            margin-top: 80px;
+            padding-top: 60px;
+            border-top: 1px solid var(--border);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+        }
+
+        .cert-item {
+            margin-bottom: 15px;
+            font-size: 1rem;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cert-item::before {
+            content: "→";
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        footer {
+            margin-top: 150px;
+            padding-bottom: 50px;
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            border-top: 1px solid var(--border);
+            padding-top: 40px;
+            letter-spacing: 1px;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 900px) {
+
+            .large,
+            .small {
+                grid-column: span 12;
+            }
+
+            .skills-section,
+            .extra-section {
+                grid-template-columns: 1fr;
+                gap: 50px;
+            }
+
+            .theme-switch-wrapper {
+                top: 20px;
+                right: 20px;
+            }
+
+            .client-logo {
+                font-size: 1.2rem;
+                letter-spacing: 1px;
+            }
+
+            .marquee-content {
+                gap: 2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- DotGrid 背景 Canvas -->
+    <canvas id="dotgrid-canvas"></canvas>
+
+    <div class="theme-switch-wrapper">
+        <button class="theme-switch" id="theme-toggle" title="切换颜色模式">
+            <!-- 太阳图标（深色模式显示） -->
+            <svg class="sun-icon" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <!-- 月亮图标（浅色模式显示，线条为紫色） -->
+            <svg class="moon-icon" viewBox="0 0 24 24">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+        </button>
+    </div>
+
+    <div class="container">
+        <nav>
+            <div class="logo">ZOE CHOU 周羽璇.</div>
+            <div class="status">
+                <div class="dot"></div> OPEN TO OFFERS
+            </div>
+        </nav>
+
+        <header>
+            <h1>Data <br><span style="color: var(--text-dim)">Analyst.</span></h1>
+            <span class="cn-title">数据分析师</span>
+            <div class="hero-flex">
+                <div>
+                    <p class="hero-desc">Bridging the gap between raw data engineering and high-level business insight.
+                    </p>
+                    <div class="hero-sub">数据工程 X 业务洞察</div>
+                </div>
+                <div class="contact-info">
+                    <div class="contact-item"><span>TEL</span>
+                        <p>+86 180 1953 1119</p>
+                    </div>
+                    <div class="contact-item"><span>MAIL</span>
+                        <p>1015860571@qq.com</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <section>
+            <h2>Work Experience / 工作经历</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <p class="timeline-date">2024.10 — PRESENT</p>
+                    <p class="timeline-company">上海翌可信息技术有限公司 <span>数据分析师 Data Analyst</span></p>
+                </div>
+                <div class="timeline-item">
+                    <p class="timeline-date">2022.06 — 2022.12</p>
+                    <p class="timeline-company">奇瑞新能源汽车股份有限公司 <span>投资助理 Investment Assistant</span></p>
+                </div>
+            </div>
+
+            <h2>Featured Case Studies / 精选案例</h2>
+            <div class="project-grid">
+                <p class="projects-disclaimer">
+                    以下案例中的报告均由真实的 pbix 文件数据脱敏后改造成 html 版本，仅作 UI/UX 分享，请勿细究功能完整性、数据逻辑性与准确性。
+                </p>
+                <!-- Chanel Card -->
+                <div class="project-card-container large">
+                    <button class="lang-toggle" onclick="toggleFlip(this)">EN / 中</button>
+                    <div class="project-card-inner">
+                        <!-- Front (CH) -->
+                        <a href="Chanel_Report.html" target="_blank" class="project-card-face face-front">
+                            <span class="client-name">Chanel / 香奈儿</span>
+                            <h3 class="project-title">精品店销售运营追踪系统</h3>
+                            <p>基于 PRD 及 Excel 原型设计，实现 Summary、BTQ Rank、Performance 等核心模块，1:1 还原复杂零售报表逻辑。</p>
+                            <div class="iframe-preview">
+                                <iframe src="Chanel_Report.html" scrolling="no"></iframe>
+                                <div class="iframe-overlay"></div>
+                                <div class="iframe-badge">点击查看完整案例 →</div>
+                            </div>
+                            <div class="project-tags">零售 | 奢侈品 | 销售运营 | Power BI | SSAS</div>
+                        </a>
+                        <!-- Back (EN) -->
+                        <a href="Chanel_Report.html" target="_blank" class="project-card-face face-back">
+                            <span class="client-name">Chanel / 香奈儿</span>
+                            <h3 class="project-title">Boutique Sales Operations Tracker</h3>
+                            <p>Built a regional sales operations tracking report for Chanel China based on PRD and Excel
+                                prototype designs, delivering a 1:1 high-fidelity replication of complex retail
+                                reporting logic.</p>
+                            <div class="iframe-preview">
+                                <iframe src="Chanel_Report.html" scrolling="no"></iframe>
+                                <div class="iframe-overlay"></div>
+                                <div class="iframe-badge">View Case Study →</div>
+                            </div>
+                            <div class="project-tags">Retail | Luxury | Sales & Ops | Power BI | SSAS</div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Reckitt Card -->
+                <div class="project-card-container small">
+                    <button class="lang-toggle" onclick="toggleFlip(this)">EN / 中</button>
+                    <div class="project-card-inner">
+                        <!-- Front (CH) -->
+                        <a href="RB_Report.html" target="_blank" class="project-card-face face-front">
+                            <span class="client-name">Reckitt / 利洁时</span>
+                            <h3 class="project-title">SCM 7R 供应链管理</h3>
+                            <p>基于 7R 理论构建的 27 页交互式管理驾驶舱，从供应链视角俯瞰出货、库存及营运成本。</p>
+                            <div class="iframe-preview" style="height: 180px;">
+                                <iframe src="RB_Report.html" scrolling="no"></iframe>
+                                <div class="iframe-overlay"></div>
+                                <div class="iframe-badge">点击查看完整案例 →</div>
+                            </div>
+                            <div class="project-tags">快消 | 供应链管理 | 7R 理论 | Power BI | Figma | HTML | SVG</div>
+                        </a>
+                        <!-- Back (EN) -->
+                        <a href="RB_Report.html" target="_blank" class="project-card-face face-back">
+                            <span class="client-name">Reckitt / 利洁时</span>
+                            <h3 class="project-title">SCM 7R Supply Chain Management</h3>
+                            <p>An interactive management cockpit built on the 7R supply chain framework, overseeing
+                                end-to-end operations across 27 report pages.</p>
+                            <div class="iframe-preview" style="height: 180px;">
+                                <iframe src="RB_Report.html" scrolling="no"></iframe>
+                                <div class="iframe-overlay"></div>
+                                <div class="iframe-badge">View Case Study →</div>
+                            </div>
+                            <div class="project-tags">FMCG | SCM | 7R Framework | Power BI | Figma | HTML | SVG</div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Saint-Gobain Card -->
+                <div class="project-card-container small">
+                    <button class="lang-toggle" onclick="toggleFlip(this)">EN / 中</button>
+                    <div class="project-card-inner">
+                        <!-- Front (CH) -->
+                        <a href="Saint-Gobain_Report.html" target="_blank" class="project-card-face face-front">
+                            <span class="client-name">Saint-Gobain / 圣戈班</span>
+                            <h3 class="project-title">人才战略分析平台</h3>
+                            <p>基于 Workday 及 Excel 数据源，实现人才九宫格、能力评估、继任计划及 ROI 分析等核心模块。</p>
+                            <div class="iframe-preview" style="height: 180px;">
+                                <iframe src="Saint-Gobain_Report.html" scrolling="no"></iframe>
+                                <div class="iframe-overlay"></div>
+                                <div class="iframe-badge">点击查看完整案例 →</div>
+                            </div>
+                            <div class="project-tags">建材 | 人力资源 | 人才管理 | Power BI | Figma | Power Query | HTML | SVG |
+                                Python</div>
+                        </a>
+                        <!-- Back (EN) -->
+                        <a href="Saint-Gobain_Report.html" target="_blank" class="project-card-face face-back">
+                            <span class="client-name">Saint-Gobain / 圣戈班</span>
+                            <h3 class="project-title">Talent Strategy Analytics Platform</h3>
+                            <p>A talent strategy platform built on Workday and Excel sources, covering 9-Box Grid,
+                                succession planning, and ROI analysis.</p>
+                            <div class="iframe-preview" style="height: 180px;">
+                                <iframe src="Saint-Gobain_Report.html" scrolling="no"></iframe>
+                                <div class="iframe-overlay"></div>
+                                <div class="iframe-badge">View Case Study →</div>
+                            </div>
+                            <div class="project-tags">Construction | HR | Talent Management | Power BI | Figma | HTML |
+                                SVG | Python</div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Philips Card -->
+                <div class="project-card-container large">
+                    <button class="lang-toggle" onclick="toggleFlip(this)">EN / 中</button>
+                    <div class="project-card-inner">
+                        <!-- Front (CH) -->
+                        <a href="Philips_Report.html" target="_blank" class="project-card-face face-front">
+                            <span class="client-name">Philips / 飞利浦</span>
+                            <h3 class="project-title">成本管理报表系统</h3>
+                            <p>基于 SAP 财务系统，构建 BF/EF 双视角成本分析平台，支持多汇率切换及预算对比分析。</p>
+                            <div class="iframe-preview">
+                                <iframe src="Philips_Report.html" scrolling="no"></iframe>
+                                <div class="iframe-overlay"></div>
+                                <div class="iframe-badge">点击查看完整案例 →</div>
+                            </div>
+                            <div class="project-tags">快消 | 工厂 | 财务 | 成本报表 | Power Query | Power BI | Figma | Sharepoint
+                            </div>
+                        </a>
+                        <!-- Back (EN) -->
+                        <a href="Philips_Report.html" target="_blank" class="project-card-face face-back">
+                            <span class="client-name">Philips / 飞利浦</span>
+                            <h3 class="project-title">Cost Management Reporting System</h3>
+                            <p>Built on SAP financial data, this system supports dual BF/EF cost analysis,
+                                multi-currency switching, and budget comparison.</p>
+                            <div class="iframe-preview">
+                                <iframe src="Philips_Report.html" scrolling="no"></iframe>
+                                <div class="iframe-overlay"></div>
+                                <div class="iframe-badge">View Case Study →</div>
+                            </div>
+                            <div class="project-tags">Manufacturing | Factory | Finance | Cost Statement | Power Query |
+                                Power BI | Figma | Sharepoint</div>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <section class="marquee-section">
+            <h2>Trusted By / 服务品牌</h2>
+            <div class="marquee-wrapper">
+                <!-- 第一组内容 -->
+                <div class="marquee-content">
+                    <span class="client-logo">CHANEL</span>
+                    <span class="client-logo">RECKITT</span>
+                    <span class="client-logo">MENGNIU</span>
+                    <span class="client-logo">SAINT-GOBAIN</span>
+                    <span class="client-logo">PHILIPS</span>
+                    <span class="client-logo">LVMH</span>
+                    <span class="client-logo">DIOR</span>
+                    <span class="client-logo">AMARIS</span>
+                    <span class="client-logo">ANTONG</span>
+                    <span class="client-logo">CHERY</span>
+                </div>
+                <!-- 第二组完全相同的副本，用于无缝滚动 -->
+                <div class="marquee-content">
+                    <span class="client-logo">CHANEL</span>
+                    <span class="client-logo">RECKITT</span>
+                    <span class="client-logo">CHERY</span>
+                    <span class="client-logo">ANTONG</span>
+                    <span class="client-logo">DIOR</span>
+                    <span class="client-logo">PHILIPS</span>
+                    <span class="client-logo">MENGNIU</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="skills-section">
+            <div class="skill-group">
+                <h3>Education / 教育背景</h3>
+                <ul class="skill-list">
+                    <li>
+                        <b>华威大学 <span class="lang-sep">|</span> Warwick University</b>
+                        <span class="sub-label">电子商务管理（数据科学方向） 硕士</span>
+                        <span class="sub-label">Master E-Business Management (Data Science) | 2023 - 2024</span>
+                    </li>
+                    <li>
+                        <b>安徽师范大学 <span class="lang-sep">|</span> Anhui Normal University</b>
+                        <span class="sub-label">投资学 学士</span>
+                        <span class="sub-label">Bachelor Investment | 2018 - 2022</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="skill-group">
+                <h3>Technical Stack / 技术栈</h3>
+                <ul class="skill-list">
+                    <li>
+                        <b>数据分析与可视化 <span class="lang-sep">|</span> BI & Analytics</b>
+                        <span class="sub-label">Vibe Coding / Power BI / DAX / SQL / SSAS / Python / VBA / Data
+                            Modeling</span>
+                    </li>
+                    <li>
+                        <b>设计与策略 <span class="lang-sep">|</span> Design & Strategy</b>
+                        <span class="sub-label">Figma Prototype / SVG / HTML & CSS / Requirement Translation</span>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="extra-section">
+            <div class="skill-group">
+                <h3>Certifications / 专业认证</h3>
+                <div class="cert-item">初级会计从业资格证</div>
+                <div class="cert-item">证券从业资格证</div>
+            </div>
+            <div class="skill-group">
+                <h3>Languages / 工作语言</h3>
+                <div class="cert-item">中文 (Native)</div>
+                <div class="cert-item">英语 (CET-6)</div>
+            </div>
+        </section>
+
+        <footer>
+            <p>© 2026 ZOE CHOU. BUILT FOR DATA EXCELLENCE.</p>
+        </footer>
+    </div>
+
+    <script>
+        const toggleBtn = document.getElementById('theme-toggle');
+        const body = document.body;
+
+        // 检查本地存储中的主题偏好
+        const currentTheme = localStorage.getItem('theme');
+        if (currentTheme === 'light') {
+            body.setAttribute('data-theme', 'light');
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            if (body.getAttribute('data-theme') === 'light') {
+                body.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                body.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+
+        // ==================== DotGrid 背景动画 ====================
+        (function () {
+            const canvas = document.getElementById('dotgrid-canvas');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+
+            // 配置参数
+            const config = {
+                dotSize: 3,
+                gap: 25,
+                baseColor: { r: 30, g: 40, b: 56 },      // #1f2838
+                activeColor: { r: 41, g: 251, b: 255 },  // #29fbff
+                proximity: 120,
+                speedTrigger: 80,
+                shockRadius: 200,
+                shockStrength: 3,
+                resistance: 0.92,
+                returnSpeed: 0.05
+            };
+
+            let dots = [];
+            let pointer = { x: -1000, y: -1000, vx: 0, vy: 0, speed: 0, lastX: 0, lastY: 0, lastTime: 0 };
+            let animationId;
+
+            // 初始化 Canvas 尺寸
+            function resize() {
+                const width = window.innerWidth;
+                const height = window.innerHeight;
+                canvas.width = width * dpr;
+                canvas.height = height * dpr;
+                canvas.style.width = width + 'px';
+                canvas.style.height = height + 'px';
+                ctx.scale(dpr, dpr);
+                buildGrid();
+            }
+
+            // 构建点阵网格
+            function buildGrid() {
+                const width = window.innerWidth;
+                const height = window.innerHeight;
+                const { dotSize, gap } = config;
+                const cell = dotSize + gap;
+
+                const cols = Math.floor((width + gap) / cell);
+                const rows = Math.floor((height + gap) / cell);
+
+                const gridW = cell * cols - gap;
+                const gridH = cell * rows - gap;
+
+                const startX = (width - gridW) / 2 + dotSize / 2;
+                const startY = (height - gridH) / 2 + dotSize / 2;
+
+                dots = [];
+                for (let y = 0; y < rows; y++) {
+                    for (let x = 0; x < cols; x++) {
+                        dots.push({
+                            cx: startX + x * cell,
+                            cy: startY + y * cell,
+                            xOffset: 0,
+                            yOffset: 0,
+                            vx: 0,
+                            vy: 0,
+                            targetX: 0,
+                            targetY: 0
+                        });
+                    }
+                }
+            }
+
+            // 颜色插值
+            function lerpColor(t) {
+                const { baseColor, activeColor } = config;
+                const r = Math.round(baseColor.r + (activeColor.r - baseColor.r) * t);
+                const g = Math.round(baseColor.g + (activeColor.g - baseColor.g) * t);
+                const b = Math.round(baseColor.b + (activeColor.b - baseColor.b) * t);
+                return `rgb(${r}, ${g}, ${b})`;
+            }
+
+            // 绘制帧
+            function draw() {
+                const width = window.innerWidth;
+                const height = window.innerHeight;
+                ctx.clearRect(0, 0, width, height);
+
+                const { dotSize, proximity, baseColor } = config;
+                const proxSq = proximity * proximity;
+
+                for (const dot of dots) {
+                    // 平滑回归原位（无弹性）
+                    dot.xOffset *= config.resistance;
+                    dot.yOffset *= config.resistance;
+
+                    const ox = dot.cx + dot.xOffset;
+                    const oy = dot.cy + dot.yOffset;
+
+                    // 计算与鼠标的距离
+                    const dx = dot.cx - pointer.x;
+                    const dy = dot.cy - pointer.y;
+                    const dsq = dx * dx + dy * dy;
+
+                    // 颜色渐变
+                    let color;
+                    if (dsq <= proxSq) {
+                        const dist = Math.sqrt(dsq);
+                        const t = 1 - dist / proximity;
+                        color = lerpColor(t);
+                    } else {
+                        color = `rgb(${baseColor.r}, ${baseColor.g}, ${baseColor.b})`;
+                    }
+
+                    // 绘制圆点
+                    ctx.beginPath();
+                    ctx.arc(ox, oy, dotSize / 2, 0, Math.PI * 2);
+                    ctx.fillStyle = color;
+                    ctx.fill();
+                }
+
+                animationId = requestAnimationFrame(draw);
+            }
+
+            // 鼠标移动处理
+            let lastMoveTime = 0;
+            function onMouseMove(e) {
+                const now = performance.now();
+                const dt = now - pointer.lastTime || 16;
+
+                pointer.x = e.clientX;
+                pointer.y = e.clientY;
+
+                const dx = e.clientX - pointer.lastX;
+                const dy = e.clientY - pointer.lastY;
+                pointer.vx = (dx / dt) * 1000;
+                pointer.vy = (dy / dt) * 1000;
+                pointer.speed = Math.hypot(pointer.vx, pointer.vy);
+
+                pointer.lastTime = now;
+                pointer.lastX = e.clientX;
+                pointer.lastY = e.clientY;
+
+                // 速度触发惯性效果
+                if (pointer.speed > config.speedTrigger && now - lastMoveTime > 50) {
+                    lastMoveTime = now;
+                    for (const dot of dots) {
+                        const dist = Math.hypot(dot.cx - pointer.x, dot.cy - pointer.y);
+                        if (dist < config.proximity) {
+                            const pushX = (dot.cx - pointer.x) * 0.1 + pointer.vx * 0.002;
+                            const pushY = (dot.cy - pointer.y) * 0.1 + pointer.vy * 0.002;
+                            dot.xOffset += pushX;
+                            dot.yOffset += pushY;
+                        }
+                    }
+                }
+            }
+
+            // 点击冲击波效果
+            function onClick(e) {
+                const cx = e.clientX;
+                const cy = e.clientY;
+
+                for (const dot of dots) {
+                    const dist = Math.hypot(dot.cx - cx, dot.cy - cy);
+                    if (dist < config.shockRadius) {
+                        const falloff = Math.max(0, 1 - dist / config.shockRadius);
+                        const pushX = (dot.cx - cx) * config.shockStrength * falloff;
+                        const pushY = (dot.cy - cy) * config.shockStrength * falloff;
+                        dot.targetX = pushX;
+                        dot.targetY = pushY;
+                    }
+                }
+            }
+
+            // 初始化
+            resize();
+            draw();
+
+            window.addEventListener('resize', resize, { passive: true });
+            window.addEventListener('mousemove', onMouseMove, { passive: true });
+            window.addEventListener('click', onClick);
+
+            // 深色/浅色模式适配
+            function updateColors() {
+                const isLight = document.body.getAttribute('data-theme') === 'light';
+                if (isLight) {
+                    config.baseColor = { r: 235, g: 235, b: 240 };
+                    config.activeColor = { r: 142, g: 119, b: 255 };
+                } else {
+                    config.baseColor = { r: 30, g: 40, b: 56 };
+                    config.activeColor = { r: 41, g: 251, b: 255 };
+                }
+            }
+
+            // 监听主题变化
+            const observer = new MutationObserver(updateColors);
+            observer.observe(document.body, { attributes: true, attributeFilter: ['data-theme'] });
+            updateColors();
+        })();
+
+        // ==================== 案例卡片翻转逻辑 ====================
+        function toggleFlip(btn) {
+            const container = btn.closest('.project-card-container');
+            container.classList.toggle('flipped');
+        }
+
+        // ==================== 案例卡片高度同步逻辑 ====================
+        function syncProjectCardHeights() {
+            const containers = document.querySelectorAll('.project-card-container');
+            if (!containers.length) return;
+
+            // 1. 重置高度以便重新计算
+            containers.forEach(c => c.style.height = 'auto');
+
+            // 2. 计算每个卡片所需的最大高度（正面和背面内容的最大值）
+            containers.forEach(container => {
+                const front = container.querySelector('.face-front');
+                const back = container.querySelector('.face-back');
+
+                // 临时允许 back 计算高度（虽然它是 absolute）
+                // 我们通过测量其子元素的总高度来模拟
+                const frontHeight = front.scrollHeight;
+                const backHeight = back.scrollHeight;
+
+                const maxHeight = Math.max(frontHeight, backHeight);
+                container.dataset.baseHeight = maxHeight;
+            });
+
+            // 3. 按行对齐（基于 offsetTop 判断是否在同一行）
+            let rows = {};
+            containers.forEach(container => {
+                const top = container.offsetTop;
+                if (!rows[top]) rows[top] = [];
+                rows[top].push(container);
+            });
+
+            for (let top in rows) {
+                const rowContainers = rows[top];
+                let rowMax = 0;
+                rowContainers.forEach(c => {
+                    rowMax = Math.max(rowMax, parseInt(c.dataset.baseHeight));
+                });
+                rowContainers.forEach(c => {
+                    c.style.height = rowMax + 'px';
+                });
+            }
+        }
+
+        window.addEventListener('load', syncProjectCardHeights);
+        window.addEventListener('resize', syncProjectCardHeights);
+
+        // 初始执行一次
+        setTimeout(syncProjectCardHeights, 100);
+    </script>
+
+</body>
+
+</html>
